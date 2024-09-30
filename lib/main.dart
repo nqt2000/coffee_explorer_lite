@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'repositories/auth_repository.dart';
-import 'package:coffee_explorer_lite/blocs/auth_bloc.dart';
-import 'screens/login_screen.dart';
+import 'authentication/view/login_screen.dart';
+import 'home/home_screen.dart';
+import 'utils/session_manager.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final SessionManager sessionManager = SessionManager();
+  String? email = await sessionManager.getUserSession();
+
+  runApp(MyApp(isLoggedIn: email != null));
 }
 
 class MyApp extends StatelessWidget {
+  final bool isLoggedIn;
+
+  MyApp({required this.isLoggedIn});
+
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => AuthBloc(AuthRepository()),
-        ),
-      ],
-      child: MaterialApp(
-        home: LoginScreen(),
+    return MaterialApp(
+      title: 'Flutter Login Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: isLoggedIn ? HomeScreen() : LoginScreen(),
     );
   }
 }
