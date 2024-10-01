@@ -31,10 +31,11 @@ class RegisterBloc {
           _stateController.add(RegisterFailure('Email already exists!'));
         } else {
           // Nếu email chưa tồn tại, thực hiện đăng ký
-          await dbHelper.insert({
+          await dbHelper.insertUser({
             'name': event.name,
             'email': event.email,
             'password': event.password,
+            'isAdmin': 0, // Mặc định khi đăng ký user không phải admin
           });
           _stateController.add(RegisterSuccess());
         }

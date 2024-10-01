@@ -25,7 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(
+        title: const Text('Login'),
+        automaticallyImplyLeading: false, // Tắt nút back
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -36,10 +39,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 200, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
                     child: TextFormField(
                       controller: emailController,
-                      decoration: InputDecoration(labelText: 'Email'),
+                      decoration: const InputDecoration(labelText: 'Email'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please input email';
@@ -51,9 +54,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 20), // Thêm khoảng cách giữa các ô nhập
+                  const SizedBox(height: 20), // Thêm khoảng cách giữa các ô nhập
                   SizedBox(
-                    width: 200, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
                     child: TextFormField(
                       controller: passwordController,
                       decoration: InputDecoration(labelText: 'Password'),
@@ -69,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
@@ -79,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ));
                       }
                     },
-                    child: Text('Login'),
+                    child: const Text('Login'),
                   ),
                   TextButton(
                     onPressed: () {
@@ -90,19 +93,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: Text('Register'),
+                    child: const Text('Register'),
                   ),
                   StreamBuilder<LoginState>(
                     stream: loginBloc.state,
                     builder: (context, snapshot) {
                       if (snapshot.data is LoginLoading) {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       } else if (snapshot.data is LoginSuccess) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => HomeScreen()));
+                                  builder: (context) => HomeScreen(
+                                        userEmail: '',
+                                      )));
                         });
                       } else if (snapshot.data is LoginFailure) {
                         return Text((snapshot.data as LoginFailure).error);

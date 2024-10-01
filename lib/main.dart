@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: isLoggedIn ? HomeScreen() : LoginScreen(),
+      home: isLoggedIn ? HomeScreen(userEmail: '',) : LoginScreen(),
     );
   }
 }
