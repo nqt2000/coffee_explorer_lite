@@ -35,7 +35,7 @@ class RegisterBloc {
             'name': event.name,
             'email': event.email,
             'password': event.password,
-            'isAdmin': 0, // Mặc định khi đăng ký user không phải admin
+            'isAdmin': 0,
           });
           _stateController.add(RegisterSuccess());
         }

@@ -29,10 +29,10 @@ class LoginBloc {
           await sessionManager.saveUserSession(event.email);
           _stateController.add(LoginSuccess());
         } else {
-          _stateController.add(LoginFailure('Email hoặc mật khẩu không đúng'));
+          _stateController.add(LoginFailure('Email or password incorrect'));
         }
       } catch (e) {
-        _stateController.add(LoginFailure('Đăng nhập thất bại'));
+        _stateController.add(LoginFailure(':Login fail!'));
       }
     }
   }

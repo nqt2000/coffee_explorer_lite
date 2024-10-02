@@ -11,7 +11,7 @@ class DatabaseHelper {
   static final userName = 'name';
   static final userEmail = 'email';
   static final userPassword = 'password';
-  static final userIsAdmin = 'isAdmin'; // Cột mới để đánh dấu quyền admin
+  static final userIsAdmin = 'isAdmin';
 
   // Bảng cafes
   static final cafeTable = 'cafes';
@@ -46,20 +46,26 @@ class DatabaseHelper {
         $userName TEXT NOT NULL,
         $userEmail TEXT NOT NULL,
         $userPassword TEXT NOT NULL,
-        $userIsAdmin INTEGER NOT NULL DEFAULT 0 ),
-    '''); // Thêm cột để lưu quyền admin (0 hoặc 1)
+        $userIsAdmin INTEGER NOT NULL DEFAULT 0 )
+    ''');
 
-    // Sau khi tạo bảng, thêm tài khoản admin mặc định
-    await db.insert('users', {
-      'name': 'Admin',
-      // Tên admin
-      'email': 'admin@admin.admin ',
-      // Email admin
-      'password': 'Admin@123',
-      // Mật khẩu admin (nên hash mật khẩu trước khi lưu)
-      'isAdmin': 1,
-      // Đặt isAdmin = 1 để đánh dấu là tài khoản admin
-    });
+    final users = [
+      {
+        'name': 'Admin',
+        'email': 'admin@admin.admin',
+        'password': 'Admin@123',
+        'isAdmin': 1,
+      },
+      {
+        'name': 'User01',
+        'email': 'abc@abc.abc',
+        'password': 'A@123123',
+      },
+    ];
+
+    for (var user in users) {
+      await db.insert(userTable, user);
+    }
 
     await db.execute('''
       CREATE TABLE $cafeTable (
@@ -97,13 +103,14 @@ class DatabaseHelper {
       where: '$userEmail = ? AND $userIsAdmin = 1',
       whereArgs: [email],
     );
+    print('check');
     return result.isNotEmpty;
   }
 
-  Future<bool> emailExists(String email) async {
+    Future<bool> emailExists(String email) async {
     final db = await instance.database;
     var result = await db!.query(
-      'users', // Bảng của bạn
+      'users',
       where: 'email = ?',
       whereArgs: [email],
     );
