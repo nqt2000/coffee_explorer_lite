@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'authentication/view/login_screen.dart';
-import 'home/home_screen.dart';
+import 'home/view/home_screen.dart';
 import 'utils/session_manager.dart';
 
 void main() async {

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
-import '../../home/home_screen.dart';
+import '../../home/view/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
