@@ -78,7 +78,6 @@ class DatabaseHelper {
     ''');
   }
 
-  // Chức năng dành cho users
   Future<int> insertUser(Map<String, dynamic> row) async {
     Database? db = await instance.database;
     return await db!.insert(userTable, row);
@@ -117,7 +116,6 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
-  // Chức năng dành cho cafes
   Future<int> insertCafe(Map<String, dynamic> row) async {
     Database? db = await instance.database;
     return await db!.insert(cafeTable, row);
@@ -126,5 +124,21 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> queryAllCafes() async {
     Database? db = await instance.database;
     return await db!.query(cafeTable);
+  }
+
+  Future<Map<String, dynamic>?> queryCafeById(int id) async {
+    Database? db = await instance.database;
+
+    List<Map<String, dynamic>> result = await db!.query(
+      cafeTable,
+      where: '$cafeId = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+
+    return null;
   }
 }

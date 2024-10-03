@@ -36,3 +36,17 @@ class ImagePicked extends HomeState {
   @override
   List<Object?> get props => [imagePaths];
 }
+
+class CafeDetailLoading extends HomeState {}
+
+class CafeDetailLoaded extends HomeState {
+  final Map<String, dynamic> cafe;
+
+  CafeDetailLoaded(this.cafe);
+}
+
+class CafeDetailError extends HomeState {
+  final String message;
+
+  CafeDetailError(this.message);
+}

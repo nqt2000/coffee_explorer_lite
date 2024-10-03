@@ -6,6 +6,7 @@ import '../../authentication/view/login_screen.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
+import 'cafe_detail_screen.dart'; // Import CafeDetailScreen
 
 class HomeScreen extends StatelessWidget {
   final String userEmail;
@@ -15,9 +16,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-      HomeBloc()
-        ..add(FetchCafes()),
+      create: (context) => HomeBloc()..add(FetchCafes()),
       child: Scaffold(
         appBar: AppBar(
           title: Text('Cafes'),
@@ -26,12 +25,15 @@ class HomeScreen extends StatelessWidget {
               icon: Icon(Icons.logout),
               onPressed: () {
                 SessionManager().clearSession();
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
               },
             ),
           ],
         ),
+        resizeToAvoidBottomInset: true,
         body: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
             if (state is HomeLoading) {
@@ -75,6 +77,16 @@ class HomeScreen extends StatelessWidget {
                             ),
                             title: Text(cafe['name']),
                             subtitle: Text(cafe['address']),
+                            onTap: () {
+                              // Chuyển sang màn hình chi tiết quán cafe
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CafeDetailScreen(cafe: cafe),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
@@ -158,10 +170,10 @@ class HomeScreen extends StatelessWidget {
                         'name': nameController.text,
                         'address': addressController.text,
                         'description': descriptionController.text,
-                        // Sử dụng imagePath từ trạng thái ImagePicked
-                        'imagePath': state is ImagePicked && state.imagePaths.isNotEmpty
+                        'imagePath': state is ImagePicked &&
+                            state.imagePaths.isNotEmpty
                             ? state.imagePaths[0]
-                            : '',  // Truyền giá trị rỗng nếu không có ảnh
+                            : '', // Giá trị rỗng nếu không có ảnh
                       };
                       context.read<HomeBloc>().add(AddCafe(newCafe));
                       Navigator.of(dialogContext).pop(); // Đóng dialog

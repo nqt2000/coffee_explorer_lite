@@ -28,3 +28,9 @@ class AddCafe extends HomeEvent {
   @override
   List<Object?> get props => [newCafe];
 }
+
+class FetchCafeDetail extends HomeEvent {
+  final int cafeId;
+
+  FetchCafeDetail(this.cafeId);
+}

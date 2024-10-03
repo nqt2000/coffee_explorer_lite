@@ -13,6 +13,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FilterCafes>(_onFilterCafes);
     on<PickImages>(_onPickImages);
     on<AddCafe>(_onAddCafe);
+    on<FetchCafeDetail>(_onFetchCafeDetail);  // Thêm sự kiện FetchCafeDetail
   }
 
   Future<void> _onFetchCafes(FetchCafes event, Emitter<HomeState> emit) async {
@@ -66,6 +67,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       print("Error while adding cafe: $e");
       emit(HomeError("Failed to add cafe"));
+    }
+  }
+
+  Future<void> _onFetchCafeDetail(FetchCafeDetail event, Emitter<HomeState> emit) async {
+    emit(CafeDetailLoading());  // Hiển thị loading khi lấy thông tin chi tiết
+    try {
+      final cafe = await DatabaseHelper.instance.queryCafeById(event.cafeId);  // Giả sử có hàm queryCafeById
+      emit(CafeDetailLoaded(cafe!));
+    } catch (e) {
+      emit(CafeDetailError('Failed to load cafe details: ${e.toString()}'));
     }
   }
 }
