@@ -13,7 +13,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FilterCafes>(_onFilterCafes);
     on<PickImages>(_onPickImages);
     on<AddCafe>(_onAddCafe);
-    on<FetchCafeDetail>(_onFetchCafeDetail);  // Thêm sự kiện FetchCafeDetail
+    on<FetchCafeDetail>(_onFetchCafeDetail);
+    on<AddImagesToCafe>(_onAddImagesToCafe);
   }
 
   Future<void> _onFetchCafes(FetchCafes event, Emitter<HomeState> emit) async {
@@ -32,9 +33,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final filteredCafes = event.query.isEmpty
           ? currentState.cafes
           : currentState.cafes.where((cafe) {
-        return cafe['name'].toLowerCase().contains(event.query.toLowerCase()) ||
-            cafe['address'].toLowerCase().contains(event.query.toLowerCase());
-      }).toList();
+              return cafe['name']
+                      .toLowerCase()
+                      .contains(event.query.toLowerCase()) ||
+                  cafe['address']
+                      .toLowerCase()
+                      .contains(event.query.toLowerCase());
+            }).toList();
       emit(HomeLoaded(currentState.cafes, filteredCafes));
     }
   }
@@ -48,7 +53,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final directory = await getApplicationDocumentsDirectory();
         final imageName = basename(pickedFile.path);
         final savedImagePath = '${directory.path}/$imageName';
-        final File localImage = await File(pickedFile.path).copy(savedImagePath);
+        final File localImage =
+            await File(pickedFile.path).copy(savedImagePath);
         imagePaths.add(localImage.path);
       }
       emit(ImagePicked(imagePaths));
@@ -58,25 +64,43 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onAddCafe(AddCafe event, Emitter<HomeState> emit) async {
-    emit(HomeLoading()); // Hiển thị loading khi bắt đầu
+    emit(HomeLoading());
     try {
-      print(
-          "Adding cafe: ${event.newCafe}"); // Thêm log để kiểm tra dữ liệu cafe
-      await DatabaseHelper.instance.insertCafe(event.newCafe);
-      add(FetchCafes()); // Fetch lại dữ liệu sau khi thêm
+      int cafeId = await DatabaseHelper.instance.insertCafe(event.newCafe);
+
+      if (event.newCafe['images'] != null &&
+          event.newCafe['images'].isNotEmpty) {
+        await DatabaseHelper.instance
+            .insertCafeImages(cafeId, event.newCafe['images']);
+      }
+
+      print("Adding cafe: ${event.newCafe}");
+      add(FetchCafes());
     } catch (e) {
       print("Error while adding cafe: $e");
       emit(HomeError("Failed to add cafe"));
     }
   }
 
-  Future<void> _onFetchCafeDetail(FetchCafeDetail event, Emitter<HomeState> emit) async {
-    emit(CafeDetailLoading());  // Hiển thị loading khi lấy thông tin chi tiết
+  Future<void> _onFetchCafeDetail(
+      FetchCafeDetail event, Emitter<HomeState> emit) async {
+    emit(CafeDetailLoading());
     try {
-      final cafe = await DatabaseHelper.instance.queryCafeById(event.cafeId);  // Giả sử có hàm queryCafeById
+      final cafe = await DatabaseHelper.instance.queryCafeById(event.cafeId);
       emit(CafeDetailLoaded(cafe!));
     } catch (e) {
       emit(CafeDetailError('Failed to load cafe details: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onAddImagesToCafe(
+      AddImagesToCafe event, Emitter<HomeState> emit) async {
+    try {
+      await DatabaseHelper.instance
+          .insertCafeImages(event.cafeId, event.images);
+      add(FetchCafes());
+    } catch (e) {
+      emit(HomeError("Failed to add images: ${e.toString()}"));
     }
   }
 }

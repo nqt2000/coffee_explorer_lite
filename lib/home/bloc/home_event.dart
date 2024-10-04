@@ -12,7 +12,7 @@ class FetchCafes extends HomeEvent {}
 class FilterCafes extends HomeEvent {
   final String query;
 
-  FilterCafes(this.query);
+  const FilterCafes(this.query);
 
   @override
   List<Object?> get props => [query];
@@ -23,7 +23,7 @@ class PickImages extends HomeEvent {}
 class AddCafe extends HomeEvent {
   final Map<String, dynamic> newCafe;
 
-  AddCafe(this.newCafe);
+  const AddCafe(this.newCafe);
 
   @override
   List<Object?> get props => [newCafe];
@@ -32,5 +32,12 @@ class AddCafe extends HomeEvent {
 class FetchCafeDetail extends HomeEvent {
   final int cafeId;
 
-  FetchCafeDetail(this.cafeId);
+  const FetchCafeDetail(this.cafeId);
+}
+
+class AddImagesToCafe extends HomeEvent {
+  final int cafeId;
+  final List<String> images;
+
+  const AddImagesToCafe(this.cafeId, this.images);
 }

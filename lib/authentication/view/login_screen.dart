@@ -6,6 +6,8 @@ import '../bloc/login_state.dart';
 import '../../home/view/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }

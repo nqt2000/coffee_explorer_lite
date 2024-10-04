@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final _databaseName = "coffeeApp.db";
-  static final _databaseVersion = 1;
+  static final _databaseVersion = 2;
 
   // Bảng users
   static final userTable = 'users';
@@ -20,6 +20,11 @@ class DatabaseHelper {
   static final cafeImagePath = 'imagePath';
   static final cafeAddress = 'address';
   static final cafeDescription = 'description';
+
+  // Bảng images
+  static final cafeImages = 'images';
+  static final imageId = 'id';
+  static final idCafe = 'cafeId';
 
   DatabaseHelper._privateConstructor();
 
@@ -49,6 +54,25 @@ class DatabaseHelper {
         $userIsAdmin INTEGER NOT NULL DEFAULT 0 )
     ''');
 
+    await db.execute('''
+      CREATE TABLE $cafeTable (
+        $cafeId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $cafeName TEXT NOT NULL,
+        $cafeImagePath TEXT NOT NULL,
+        $cafeAddress TEXT NOT NULL,
+        $cafeDescription TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+  CREATE TABLE $cafeImages (
+    $imageId INTEGER PRIMARY KEY AUTOINCREMENT,
+    $idCafe INTEGER NOT NULL,
+    $cafeImagePath TEXT NOT NULL,
+    FOREIGN KEY ($idCafe) REFERENCES $cafeTable ($cafeId) ON DELETE CASCADE
+  )
+''');
+
     final users = [
       {
         'name': 'Admin',
@@ -66,16 +90,6 @@ class DatabaseHelper {
     for (var user in users) {
       await db.insert(userTable, user);
     }
-
-    await db.execute('''
-      CREATE TABLE $cafeTable (
-        $cafeId INTEGER PRIMARY KEY AUTOINCREMENT,
-        $cafeName TEXT NOT NULL,
-        $cafeImagePath TEXT NOT NULL,
-        $cafeAddress TEXT NOT NULL,
-        $cafeDescription TEXT NOT NULL
-      )
-    ''');
   }
 
   Future<int> insertUser(Map<String, dynamic> row) async {
@@ -106,7 +120,7 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
-    Future<bool> emailExists(String email) async {
+  Future<bool> emailExists(String email) async {
     final db = await instance.database;
     var result = await db!.query(
       'users',
@@ -118,6 +132,13 @@ class DatabaseHelper {
 
   Future<int> insertCafe(Map<String, dynamic> row) async {
     Database? db = await instance.database;
+    if (row[cafeName] == null || row[cafeName].toString().isEmpty) {
+      throw Exception('Cafe name is required!');
+    }
+
+    if (row[cafeAddress] == null || row[cafeAddress].toString().isEmpty) {
+      throw Exception('Cafe address is required!');
+    }
     return await db!.insert(cafeTable, row);
   }
 
@@ -140,5 +161,25 @@ class DatabaseHelper {
     }
 
     return null;
+  }
+
+  Future<void> insertCafeImages(int cafeId, List<String> imagePaths) async {
+    Database? db = await instance.database;
+    for (String imagePath in imagePaths) {
+      await db!.insert(cafeImages, {
+        idCafe: cafeId,
+        cafeImagePath: imagePath,
+      });
+    }
+  }
+
+  Future<List<String>> getCafeImages(int cafeId) async {
+    Database? db = await instance.database;
+    List<Map<String, dynamic>> result = await db!.query(
+      cafeImages,
+      where: '$idCafe = ?',
+      whereArgs: [cafeId],
+    );
+    return result.map((row) => row[cafeImagePath].toString()).toList();
   }
 }

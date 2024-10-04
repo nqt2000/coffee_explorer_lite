@@ -11,7 +11,7 @@ import 'cafe_detail_screen.dart'; // Import CafeDetailScreen
 class HomeScreen extends StatelessWidget {
   final String userEmail;
 
-  HomeScreen({required this.userEmail});
+  const HomeScreen({super.key, required this.userEmail});
 
   @override
   Widget build(BuildContext context) {
@@ -70,15 +70,14 @@ class HomeScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                               child: cafe['imagePath'] != null &&
-                                  cafe['imagePath'].isNotEmpty
+                                      cafe['imagePath'].isNotEmpty
                                   ? Image.file(File(cafe['imagePath']),
-                                  fit: BoxFit.contain)
+                                      fit: BoxFit.contain)
                                   : Icon(Icons.image, color: Colors.grey),
                             ),
                             title: Text(cafe['name']),
                             subtitle: Text(cafe['address']),
                             onTap: () {
-                              // Chuyển sang màn hình chi tiết quán cafe
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -87,6 +86,12 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               );
                             },
+                            trailing: IconButton(
+                              icon: Icon(Icons.add_photo_alternate),
+                              onPressed: () {
+                                _showAddImagesDialog(context, cafe['id']);
+                              },
+                            ),
                           ),
                         );
                       },
@@ -107,6 +112,62 @@ class HomeScreen extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _showAddImagesDialog(BuildContext context, int cafeId) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: BlocProvider.of<HomeBloc>(context),
+          child: AlertDialog(
+            title: Text('Add Images'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<HomeBloc>().add(PickImages());
+                  },
+                  child: Text('Upload Images'),
+                ),
+                BlocBuilder<HomeBloc, HomeState>(
+                  builder: (context, state) {
+                    if (state is ImagePicked) {
+                      return Wrap(
+                        spacing: 8.0,
+                        children: state.imagePaths.map((path) {
+                          return Image.file(File(path),
+                              width: 100, height: 100, fit: BoxFit.contain);
+                        }).toList(),
+                      );
+                    }
+                    return Container();
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      if (state is ImagePicked) {
+                        context
+                            .read<HomeBloc>()
+                            .add(AddImagesToCafe(cafeId, state.imagePaths));
+                        Navigator.of(dialogContext).pop();
+                      }
+                    },
+                    child: Text('Add Images'),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -166,17 +227,29 @@ class HomeScreen extends StatelessWidget {
                 builder: (context, state) {
                   return ElevatedButton(
                     onPressed: () {
+                      final name = nameController.text.trim();
+                      final address = addressController.text.trim();
+
+                      if (name.isEmpty || address.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Name and address is required!')),
+                        );
+                        return;
+                      }
+
                       final newCafe = {
-                        'name': nameController.text,
-                        'address': addressController.text,
+                        'name': name,
+                        'address': address,
                         'description': descriptionController.text,
-                        'imagePath': state is ImagePicked &&
-                            state.imagePaths.isNotEmpty
-                            ? state.imagePaths[0]
-                            : '', // Giá trị rỗng nếu không có ảnh
+                        'imagePath':
+                            state is ImagePicked && state.imagePaths.isNotEmpty
+                                ? state.imagePaths[0]
+                                : '',
                       };
                       context.read<HomeBloc>().add(AddCafe(newCafe));
-                      Navigator.of(dialogContext).pop(); // Đóng dialog
+                      Navigator.of(dialogContext).pop();
                     },
                     child: Text('Add'),
                   );
