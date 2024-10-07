@@ -59,38 +59,146 @@ class HomeScreen extends StatelessWidget {
                       itemCount: state.filteredCafes.length,
                       itemBuilder: (context, index) {
                         final cafe = state.filteredCafes[index];
-                        return Card(
-                          margin: const EdgeInsets.all(8.0),
-                          child: ListTile(
-                            leading: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: cafe['imagePath'] != null &&
-                                      cafe['imagePath'].isNotEmpty
-                                  ? Image.file(File(cafe['imagePath']),
-                                      fit: BoxFit.contain)
-                                  : Icon(Icons.image, color: Colors.grey),
+                        return Dismissible(
+                          key: Key(cafe['id'].toString()),
+                          direction: DismissDirection.horizontal,
+                          // Cho phép trượt theo cả 2 hướng
+                          background: Container(
+                            margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                            color: Colors.green,
+                            // Màu nền khi trượt sang phải để thêm ảnh
+                            padding: EdgeInsets.symmetric(horizontal: 30),
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Icon(
+                              Icons.add_photo_alternate,
+                              color: Colors.white,
+                              size: 30,
                             ),
-                            title: Text(cafe['name']),
-                            subtitle: Text(cafe['address']),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      CafeDetailScreen(cafe: cafe),
-                                ),
+                          ),
+                          secondaryBackground: Container(
+                            margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                            color: Colors.red,
+                            padding: EdgeInsets.symmetric(horizontal: 30),
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
+                          confirmDismiss: (direction) async {
+                            if (direction == DismissDirection.endToStart) {
+                              // Hành động xóa cafe
+                              return await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('Delete Confirmation'),
+                                    content: Text(
+                                        'Are you sure you want to delete this cafe?'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: Text('Delete'),
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
-                            },
-                            trailing: IconButton(
-                              icon: Icon(Icons.add_photo_alternate),
-                              onPressed: () {
-                                _showAddImagesDialog(context, cafe['id']);
-                              },
+                            } else if (direction ==
+                                DismissDirection.startToEnd) {
+                              // Hành động thêm ảnh
+                              _showAddImagesDialog(context, cafe['id']);
+                              return false; // Ngăn không cho widget bị xóa khi trượt sang phải
+                            }
+                            return null;
+                          },
+                          onDismissed: (direction) {
+                            if (direction == DismissDirection.endToStart) {
+                              final cafeName = cafe['name'];
+                              context
+                                  .read<HomeBloc>()
+                                  .add(DeleteCafe(cafe['id']));
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text("$cafeName deleted"),
+                              ));
+                            }
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.fromLTRB(
+                                15.0, 10.0, 15.0, 10.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: ListTile(
+                                leading: Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    image: cafe['imagePath'] != null &&
+                                            cafe['imagePath'].isNotEmpty
+                                        ? DecorationImage(
+                                            image: FileImage(
+                                                File(cafe['imagePath'])),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                  ),
+                                  child: cafe['imagePath'] == null ||
+                                          cafe['imagePath'].isEmpty
+                                      ? Icon(Icons.image,
+                                          color: Colors.grey, size: 30)
+                                      : null,
+                                ),
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cafe['name'],
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      cafe['address'],
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      cafe['description'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  // Mở màn hình chi tiết cafe khi nhấn vào quán
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CafeDetailScreen(cafe: cafe),
+                                    ),
+                                  );
+                                },
+                                trailing: Icon(Icons
+                                    .arrow_forward_ios), // Biểu tượng mở chi tiết
+                              ),
                             ),
                           ),
                         );
@@ -98,7 +206,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(15.0),
                     child: ElevatedButton(
                       onPressed: () => _showAddCafeDialog(context),
                       child: Text('Add Cafe'),
@@ -233,8 +341,7 @@ class HomeScreen extends StatelessWidget {
                       if (name.isEmpty || address.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                              content:
-                                  Text('Name and address is required!')),
+                              content: Text('Name and address are required!')),
                         );
                         return;
                       }

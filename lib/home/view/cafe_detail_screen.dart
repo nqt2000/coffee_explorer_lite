@@ -1,7 +1,6 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-
+import 'full_size_image_screen.dart'; // Thêm import cho màn hình fullsize
 import '../../utils/database_helper.dart';
 
 class CafeDetailScreen extends StatelessWidget {
@@ -15,7 +14,6 @@ class CafeDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            // Ảnh đầu tiên của quán cà phê
             if (cafe['imagePath'] != null && cafe['imagePath'].isNotEmpty)
               Container(
                 width: 40,
@@ -39,12 +37,11 @@ class CafeDetailScreen extends StatelessWidget {
                 color: Colors.grey,
                 size: 40,
               ),
-            // Tên quán cà phê
             Expanded(
               child: Text(
                 cafe['name'],
-                style: TextStyle(fontSize: 18), // Điều chỉnh kích thước chữ nếu cần
-                overflow: TextOverflow.ellipsis, // Cắt ngắn nếu tên quá dài
+                style: TextStyle(fontSize: 18),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -55,7 +52,6 @@ class CafeDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Slide ảnh cho quán cà phê
             FutureBuilder<List<String>>(
               future: DatabaseHelper.instance.getCafeImages(cafe['id']),
               builder: (context, snapshot) {
@@ -67,49 +63,68 @@ class CafeDetailScreen extends StatelessWidget {
                   final imagePaths = snapshot.data ?? [];
                   return imagePaths.isNotEmpty
                       ? Column(
-                    children: [
-                      Container(
-                        height: 300,
-                        width: 300,
-                        child: PageView.builder(
-                          itemCount: imagePaths.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(30),
-                                child: Image.file(
-                                  File(imagePaths[index]),
-                                  fit: BoxFit.cover,
-                                ),
+                          children: [
+                            SizedBox(
+                              height: 350,
+                              width: 350,
+                              child: PageView.builder(
+                                itemCount: imagePaths.length,
+                                itemBuilder: (context, index) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      // Chuyển sang màn hình hiển thị fullsize khi bấm vào ảnh
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              FullSizeImageScreen(
+                                            imageUrl: imagePaths[index],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: Image.file(
+                                          File(imagePaths[index]),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(imagePaths.length, (index) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                            width: 8.0,
-                            height: 8.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blue, // Đổi màu nếu ảnh hiện tại được chọn
                             ),
-                          );
-                        }),
-                      )
-                    ],
-                  )
-                      : Icon(Icons.image, size: 150, color: Colors.grey);
+                            SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children:
+                                  List.generate(imagePaths.length, (index) {
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  width: 8.0,
+                                  height: 8.0,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              }),
+                            )
+                          ],
+                        )
+                      : Center(
+                          child:
+                              Icon(Icons.image, size: 300, color: Colors.grey),
+                        );
                 }
               },
             ),
             SizedBox(height: 16),
-            // Thông tin quán cà phê
+            //Cafe information
             Text('Address: ${cafe['address']}', style: TextStyle(fontSize: 18)),
             SizedBox(height: 8),
             Text('Description: ${cafe['description']}',

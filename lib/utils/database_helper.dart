@@ -182,4 +182,13 @@ class DatabaseHelper {
     );
     return result.map((row) => row[cafeImagePath].toString()).toList();
   }
+
+  Future<int> deleteCafe(int id) async {
+    final db = await database;
+    return await db!.delete(
+        'cafes',
+        where: 'id = ?',
+        whereArgs: [id]
+    );
+  }
 }

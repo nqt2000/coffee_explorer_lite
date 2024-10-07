@@ -41,3 +41,11 @@ class AddImagesToCafe extends HomeEvent {
 
   const AddImagesToCafe(this.cafeId, this.images);
 }
+
+class DeleteCafe extends HomeEvent {
+  final int cafeId;
+
+  const DeleteCafe(this.cafeId);
+}
+
+class ResetImageState extends HomeEvent {}

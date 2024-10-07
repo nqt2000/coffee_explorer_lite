@@ -6,8 +6,11 @@ import 'package:path/path.dart';
 import '../../utils/database_helper.dart';
 import 'home_event.dart';
 import 'home_state.dart';
+import 'cafe_detail_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  List<Map<String, dynamic>> _cachedCafes = [];
+
   HomeBloc() : super(HomeLoading()) {
     on<FetchCafes>(_onFetchCafes);
     on<FilterCafes>(_onFilterCafes);
@@ -15,12 +18,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<AddCafe>(_onAddCafe);
     on<FetchCafeDetail>(_onFetchCafeDetail);
     on<AddImagesToCafe>(_onAddImagesToCafe);
+    on<DeleteCafe>(_onDeleteCafe);
+    on<ResetImageState>(_onResetImageState);
   }
 
   Future<void> _onFetchCafes(FetchCafes event, Emitter<HomeState> emit) async {
-    emit(HomeLoading()); // Hiển thị loading khi bắt đầu
+    emit(HomeLoading());
     try {
       final cafes = await DatabaseHelper.instance.queryAllCafes();
+      _cachedCafes = cafes;
       emit(HomeLoaded(cafes, cafes));
     } catch (e) {
       emit(HomeError("Error fetching cafes: ${e.toString()}"));
@@ -33,13 +39,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final filteredCafes = event.query.isEmpty
           ? currentState.cafes
           : currentState.cafes.where((cafe) {
-              return cafe['name']
-                      .toLowerCase()
-                      .contains(event.query.toLowerCase()) ||
-                  cafe['address']
-                      .toLowerCase()
-                      .contains(event.query.toLowerCase());
-            }).toList();
+        return cafe['name']
+            .toLowerCase()
+            .contains(event.query.toLowerCase()) ||
+            cafe['address']
+                .toLowerCase()
+                .contains(event.query.toLowerCase());
+      }).toList();
       emit(HomeLoaded(currentState.cafes, filteredCafes));
     }
   }
@@ -54,7 +60,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final imageName = basename(pickedFile.path);
         final savedImagePath = '${directory.path}/$imageName';
         final File localImage =
-            await File(pickedFile.path).copy(savedImagePath);
+        await File(pickedFile.path).copy(savedImagePath);
         imagePaths.add(localImage.path);
       }
       emit(ImagePicked(imagePaths));
@@ -102,5 +108,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       emit(HomeError("Failed to add images: ${e.toString()}"));
     }
+  }
+
+  Future<void> _onDeleteCafe(DeleteCafe event, Emitter<HomeState> emit) async {
+    try {
+      await DatabaseHelper.instance.deleteCafe(event.cafeId);
+      add(FetchCafes());
+    } catch (e) {
+      emit(HomeError("Failed to delete cafe: ${e.toString()}"));
+    }
+  }
+
+  void _onResetImageState(ResetImageState event, Emitter<HomeState> emit) {
+    emit(HomeLoaded(_cachedCafes, _cachedCafes));
   }
 }
