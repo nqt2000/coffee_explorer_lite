@@ -6,12 +6,34 @@ import '../../authentication/view/login_screen.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
-import 'cafe_detail_screen.dart'; // Import CafeDetailScreen
+import 'cafe_detail_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  final String userEmail;
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key, required userFullName, required bool isAdmin})
+      : super(key: key);
 
-  const HomeScreen({super.key, required this.userEmail});
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? userFullName;
+  bool? isAdmin;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserSession();
+  }
+
+  Future<void> _loadUserSession() async {
+    final sessionManager = SessionManager();
+    final userInfo = await sessionManager.getUserInfo();
+    setState(() {
+      userFullName = userInfo?['name'] ?? 'User';
+      isAdmin = userInfo?['isAdmin'] == 1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +41,8 @@ class HomeScreen extends StatelessWidget {
       create: (context) => HomeBloc()..add(FetchCafes()),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Cafes'),
+          title: Text('Welcome, ${userFullName ?? 'User'}'),
+          //, ${isAdmin == true ? 'Admin' : 'User'},
           actions: [
             IconButton(
               icon: Icon(Icons.logout),
@@ -62,13 +85,11 @@ class HomeScreen extends StatelessWidget {
                         return Dismissible(
                           key: Key(cafe['id'].toString()),
                           direction: DismissDirection.horizontal,
-                          // Cho phép trượt theo cả 2 hướng
                           background: Container(
                             margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                            color: Colors.green,
-                            // Màu nền khi trượt sang phải để thêm ảnh
                             padding: EdgeInsets.symmetric(horizontal: 30),
-                            alignment: AlignmentDirectional.centerStart,
+                            color: Colors.green,
+                            alignment: Alignment.centerLeft,
                             child: Icon(
                               Icons.add_photo_alternate,
                               color: Colors.white,
@@ -77,9 +98,9 @@ class HomeScreen extends StatelessWidget {
                           ),
                           secondaryBackground: Container(
                             margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                            color: Colors.red,
                             padding: EdgeInsets.symmetric(horizontal: 30),
-                            alignment: AlignmentDirectional.centerEnd,
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
                             child: Icon(
                               Icons.delete,
                               color: Colors.white,
@@ -88,7 +109,6 @@ class HomeScreen extends StatelessWidget {
                           ),
                           confirmDismiss: (direction) async {
                             if (direction == DismissDirection.endToStart) {
-                              // Hành động xóa cafe
                               return await showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
@@ -113,9 +133,8 @@ class HomeScreen extends StatelessWidget {
                               );
                             } else if (direction ==
                                 DismissDirection.startToEnd) {
-                              // Hành động thêm ảnh
                               _showAddImagesDialog(context, cafe['id']);
-                              return false; // Ngăn không cho widget bị xóa khi trượt sang phải
+                              return false;
                             }
                             return null;
                           },
@@ -187,7 +206,6 @@ class HomeScreen extends StatelessWidget {
                                   ],
                                 ),
                                 onTap: () {
-                                  // Mở màn hình chi tiết cafe khi nhấn vào quán
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -196,8 +214,6 @@ class HomeScreen extends StatelessWidget {
                                     ),
                                   );
                                 },
-                                trailing: Icon(Icons
-                                    .arrow_forward_ios), // Biểu tượng mở chi tiết
                               ),
                             ),
                           ),
@@ -257,9 +273,15 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text('Cancel'),
+              ),
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  return ElevatedButton(
+                  return TextButton(
                     onPressed: () {
                       if (state is ImagePicked) {
                         context
@@ -292,48 +314,72 @@ class HomeScreen extends StatelessWidget {
           child: AlertDialog(
             title: Text('Add Cafe'),
             content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(labelText: 'Cafe Name'),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                ),
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(labelText: 'Cafe Name'),
+                        minLines: 1,
+                        maxLines: 2,
+                      ),
+                      TextField(
+                        controller: addressController,
+                        decoration: InputDecoration(labelText: 'Address'),
+                        minLines: 1,
+                        maxLines: 2,
+                      ),
+                      TextField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(labelText: 'Description'),
+                        minLines: 5,
+                        maxLines: 6,
+                        keyboardType: TextInputType.multiline,
+                      ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<HomeBloc>().add(PickImages());
+                        },
+                        child: Text('Upload Images'),
+                      ),
+                      BlocBuilder<HomeBloc, HomeState>(
+                        builder: (context, state) {
+                          if (state is ImagePicked) {
+                            return Wrap(
+                              spacing: 8.0,
+                              children: state.imagePaths.map((path) {
+                                return Image.file(File(path),
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.contain);
+                              }).toList(),
+                            );
+                          }
+                          return Container();
+                        },
+                      ),
+                    ],
                   ),
-                  TextField(
-                    controller: addressController,
-                    decoration: InputDecoration(labelText: 'Address'),
-                  ),
-                  TextField(
-                    controller: descriptionController,
-                    decoration: InputDecoration(labelText: 'Description'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<HomeBloc>().add(PickImages());
-                    },
-                    child: Text('Upload Images'),
-                  ),
-                  BlocBuilder<HomeBloc, HomeState>(
-                    builder: (context, state) {
-                      if (state is ImagePicked) {
-                        return Wrap(
-                          spacing: 8.0,
-                          children: state.imagePaths.map((path) {
-                            return Image.file(File(path),
-                                width: 100, height: 100, fit: BoxFit.contain);
-                          }).toList(),
-                        );
-                      }
-                      return Container();
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
             actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text('Cancel'),
+              ),
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  return ElevatedButton(
+                  return TextButton(
                     onPressed: () {
                       final name = nameController.text.trim();
                       final address = addressController.text.trim();

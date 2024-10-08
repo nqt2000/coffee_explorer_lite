@@ -8,7 +8,6 @@ class LoginBloc {
   final SessionManager sessionManager = SessionManager();
   final DatabaseHelper dbHelper = DatabaseHelper.instance;
 
-  // Controllers for managing state and events
   final _stateController = StreamController<LoginState>();
   Stream<LoginState> get state => _stateController.stream;
 
@@ -27,12 +26,13 @@ class LoginBloc {
         var user = await dbHelper.queryUser(event.email, event.password);
         if (user != null) {
           await sessionManager.saveUserSession(event.email);
-          _stateController.add(LoginSuccess());
+
+          _stateController.add(LoginSuccess(event.email));
         } else {
           _stateController.add(LoginFailure('Email or password incorrect'));
         }
       } catch (e) {
-        _stateController.add(LoginFailure(':Login fail!'));
+        _stateController.add(LoginFailure('Login fail!'));
       }
     }
   }
@@ -42,3 +42,4 @@ class LoginBloc {
     _eventController.close();
   }
 }
+

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'full_size_image_screen.dart'; // Thêm import cho màn hình fullsize
@@ -25,9 +26,34 @@ class CafeDetailScreen extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
-                  child: Image.file(
-                    File(cafe['imagePath']),
-                    fit: BoxFit.cover,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final image = Image.file(File(cafe['imagePath']));
+
+                      return FutureBuilder<ImageInfo>(
+                        future: _getImageInfo(image),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                                  ConnectionState.done &&
+                              snapshot.hasData) {
+                            // Truy cập image từ snapshot.data.image
+                            final imageInfo = snapshot.data!;
+                            final aspectRatio =
+                                imageInfo.image.width / imageInfo.image.height;
+                            final fit = aspectRatio > 1
+                                ? BoxFit.fitWidth
+                                : BoxFit.fitHeight;
+
+                            return Image.file(
+                              File(cafe['imagePath']),
+                              fit: fit,
+                            );
+                          } else {
+                            return CircularProgressIndicator(); // Hiển thị loading khi đang lấy thông tin ảnh
+                          }
+                        },
+                      );
+                    },
                   ),
                 ),
               )
@@ -72,7 +98,6 @@ class CafeDetailScreen extends StatelessWidget {
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
                                     onTap: () {
-                                      // Chuyển sang màn hình hiển thị fullsize khi bấm vào ảnh
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -83,6 +108,35 @@ class CafeDetailScreen extends StatelessWidget {
                                         ),
                                       );
                                     },
+                                    // Fit image by ratio
+                                    // child: LayoutBuilder(
+                                    //   builder: (context, constraints) {
+                                    //     final image = Image.file(File(imagePaths[index]));
+                                    //
+                                    //     return FutureBuilder<ImageInfo>(
+                                    //       future: _getImageInfo(image),
+                                    //       builder: (context, snapshot) {
+                                    //         if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                                    //           // Truy cập image từ snapshot.data.image
+                                    //           final imageInfo = snapshot.data!;
+                                    //           final aspectRatio = imageInfo.image.width / imageInfo.image.height;
+                                    //           final fit = aspectRatio > 1 ? BoxFit.fitWidth : BoxFit.fitHeight;
+                                    //
+                                    //           return ClipRRect(
+                                    //             borderRadius: BorderRadius.circular(30),
+                                    //             child: Image.file(
+                                    //               File(imagePaths[index]),
+                                    //               fit: fit,
+                                    //             ),
+                                    //           );
+                                    //         } else {
+                                    //           return CircularProgressIndicator(); // Hiển thị loading khi đang lấy thông tin ảnh
+                                    //         }
+                                    //       },
+                                    //     );
+                                    //   },
+                                    // ),
+
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: ClipRRect(
@@ -134,4 +188,14 @@ class CafeDetailScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<ImageInfo> _getImageInfo(Image image) async {
+  final completer = Completer<ImageInfo>();
+  image.image.resolve(ImageConfiguration()).addListener(
+    ImageStreamListener((ImageInfo info, bool _) {
+      completer.complete(info);
+    }),
+  );
+  return completer.future;
 }

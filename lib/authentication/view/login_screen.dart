@@ -1,5 +1,6 @@
 import 'package:coffee_explorer_lite/authentication/view/register_screen.dart';
 import 'package:flutter/material.dart';
+import '../../utils/session_manager.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
@@ -29,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
-        automaticallyImplyLeading: false, // Tắt nút back
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -41,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250,
                     child: TextFormField(
                       controller: emailController,
                       decoration: const InputDecoration(labelText: 'Email'),
@@ -56,12 +57,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 20), // Thêm khoảng cách giữa các ô nhập
+                  const SizedBox(height: 20),
                   SizedBox(
-                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250,
                     child: TextFormField(
                       controller: passwordController,
-                      decoration: InputDecoration(labelText: 'Password'),
+                      decoration: const InputDecoration(labelText: 'Password'),
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -103,20 +104,39 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (snapshot.data is LoginLoading) {
                         return const CircularProgressIndicator();
                       } else if (snapshot.data is LoginSuccess) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          Navigator.pushReplacement(
+                        WidgetsBinding.instance.addPostFrameCallback((_) async {
+                          final sessionManager = SessionManager();
+                          String? email = (snapshot.data as LoginSuccess).email;
+
+                          await sessionManager.saveUserSession(email);
+
+                          Map<String, dynamic>? userInfo = await sessionManager.getUserInfo();
+
+                          if (userInfo != null) {
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => HomeScreen(
-                                        userEmail: '',
-                                      )));
+                                builder: (context) => HomeScreen(
+                                  userFullName: userInfo['name'] ?? '',
+                                  isAdmin: userInfo['isAdmin'] == 1,
+                                ),
+                              ),
+                            );
+                          }
                         });
                       } else if (snapshot.data is LoginFailure) {
-                        return Text((snapshot.data as LoginFailure).error);
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text((snapshot.data as LoginFailure).error),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        });
                       }
                       return Container();
                     },
-                  ),
+                  )
                 ],
               ),
             ),
