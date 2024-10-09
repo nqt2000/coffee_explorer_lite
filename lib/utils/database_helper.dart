@@ -3,9 +3,8 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final _databaseName = "coffeeApp.db";
-  static final _databaseVersion = 2;
+  static final _databaseVersion = 3;
 
-  // Bảng users
   static final userTable = 'users';
   static final userId = 'id';
   static final userName = 'name';
@@ -13,7 +12,6 @@ class DatabaseHelper {
   static final userPassword = 'password';
   static final userIsAdmin = 'isAdmin';
 
-  // Bảng cafes
   static final cafeTable = 'cafes';
   static final cafeId = 'id';
   static final cafeName = 'name';
@@ -21,10 +19,16 @@ class DatabaseHelper {
   static final cafeAddress = 'address';
   static final cafeDescription = 'description';
 
-  // Bảng images
-  static final cafeImages = 'images';
+  static final imageTable = 'images';
   static final imageId = 'id';
   static final idCafe = 'cafeId';
+
+  static final commentTable = 'comments';
+  static final commentId = 'id';
+  static final idUser = 'userId';
+  static final commentUserText = 'commentText';
+  static final commentTimestamp = 'timestamp';
+  static final commentIsHidden = 'isHidden';
 
   DatabaseHelper._privateConstructor();
 
@@ -65,7 +69,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-  CREATE TABLE $cafeImages (
+  CREATE TABLE $imageTable (
     $imageId INTEGER PRIMARY KEY AUTOINCREMENT,
     $idCafe INTEGER NOT NULL,
     $cafeImagePath TEXT NOT NULL,
@@ -73,17 +77,30 @@ class DatabaseHelper {
   )
 ''');
 
+    await db.execute('''
+    CREATE TABLE $commentTable (
+      $commentId INTEGER PRIMARY KEY AUTOINCREMENT,
+      $idCafe INTEGER NOT NULL,
+      $idUser INTEGER NOT NULL,
+      $commentUserText TEXT NOT NULL,
+      $commentTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      $commentIsHidden INTEGER DEFAULT 0,
+      FOREIGN KEY ($idCafe) REFERENCES $cafeTable ($cafeId),
+      FOREIGN KEY ($idUser) REFERENCES $userTable ($userId)
+    )
+  ''');
+
     final users = [
       {
-        'name': 'Admin',
-        'email': 'admin@admin.admin',
-        'password': 'Admin@123',
-        'isAdmin': 1,
+        userName: 'Admin',
+        userEmail: 'admin@admin.admin',
+        userPassword: 'Admin@123',
+        userIsAdmin: 1,
       },
       {
-        'name': 'User01',
-        'email': 'abc@abc.abc',
-        'password': 'A@123123',
+        userName: 'User01',
+        userEmail: 'abc@abc.abc',
+        userPassword: 'A@123123',
       },
     ];
 
@@ -116,15 +133,14 @@ class DatabaseHelper {
       where: '$userEmail = ? AND $userIsAdmin = 1',
       whereArgs: [email],
     );
-    print('check');
     return result.isNotEmpty;
   }
 
   Future<bool> emailExists(String email) async {
     final db = await instance.database;
     var result = await db!.query(
-      'users',
-      where: 'email = ?',
+      userTable,
+      where: '$userEmail = ?',
       whereArgs: [email],
     );
     return result.isNotEmpty;
@@ -166,7 +182,7 @@ class DatabaseHelper {
   Future<void> insertCafeImages(int cafeId, List<String> imagePaths) async {
     Database? db = await instance.database;
     for (String imagePath in imagePaths) {
-      await db!.insert(cafeImages, {
+      await db!.insert(imageTable, {
         idCafe: cafeId,
         cafeImagePath: imagePath,
       });
@@ -176,7 +192,7 @@ class DatabaseHelper {
   Future<List<String>> getCafeImages(int cafeId) async {
     Database? db = await instance.database;
     List<Map<String, dynamic>> result = await db!.query(
-      cafeImages,
+      imageTable,
       where: '$idCafe = ?',
       whereArgs: [cafeId],
     );
@@ -185,11 +201,7 @@ class DatabaseHelper {
 
   Future<int> deleteCafe(int id) async {
     final db = await database;
-    return await db!.delete(
-        'cafes',
-        where: 'id = ?',
-        whereArgs: [id]
-    );
+    return await db!.delete(cafeTable, where: '$cafeId = ?', whereArgs: [id]);
   }
 
   Future<Map<dynamic, dynamic>?> queryUserByEmail(String email) async {
@@ -206,4 +218,98 @@ class DatabaseHelper {
     }
     return null;
   }
+
+  Future<int> insertComment(int cafeId, int userId, String commentText) async {
+    Database? db = await instance.database;
+    return await db!.insert('comments', {
+      idCafe: cafeId,
+      idUser: userId,
+      commentUserText: commentText,
+      commentTimestamp: DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<bool> canEditOrDeleteComment(int cid, int uid) async {
+    Database? db = await instance.database;
+    List<Map<String, dynamic>> result = await db!.query(
+      commentTable,
+      where: '$commentId = ? AND $idUser = ?',
+      whereArgs: [cid, uid],
+    );
+
+    if (result.isNotEmpty) {
+      return true;
+    }
+
+    List<Map<String, dynamic>> adminCheck = await db.query(
+      userTable,
+      where: '$userId = ? AND $userIsAdmin = 1',
+      whereArgs: [uid],
+    );
+
+    return adminCheck.isNotEmpty;
+  }
+
+  Future<int> deleteComment(int cid, int uid) async {
+    Database? db = await instance.database;
+
+    bool canDelete = await canEditOrDeleteComment(cid, uid);
+    if (!canDelete) {
+      throw Exception('You do not have permission to delete this comment.');
+    }
+
+    return await db!.delete(
+      commentTable,
+      where: '$commentId = ?',
+      whereArgs: [cid],
+    );
+  }
+
+  Future<int> updateComment(int cid, String newText, int uid) async {
+    Database? db = await instance.database;
+
+    bool canEdit = await canEditOrDeleteComment(cid, uid);
+    if (!canEdit) {
+      throw Exception('You do not have permission to edit this comment.');
+    }
+
+    return await db!.update(
+      commentTable,
+      {commentUserText: newText},
+      where: 'id = ?',
+      whereArgs: [cid],
+    );
+  }
+
+  Future<int> hideComment(int cid, int uid) async {
+    Database? db = await instance.database;
+
+    List<Map<String, dynamic>> result = await db!.query(
+      userTable,
+      where: '$userId = ? AND $userIsAdmin = 1',
+      whereArgs: [uid],
+    );
+
+    if (result.isEmpty) {
+      throw Exception('Only admins can hide comments.');
+    }
+
+    return await db!.update(
+      commentTable,
+      {commentIsHidden: 1},
+      where: '$commentId = ?',
+      whereArgs: [cid],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getCommentsByCafe(int cid) async {
+    Database? db = await instance.database;
+    return await db!.query(
+      commentTable,
+      where: '$idCafe = ? AND $commentIsHidden = 0',
+      whereArgs: [cid],
+      orderBy: '$commentTimestamp DESC',
+    );
+  }
+
 }

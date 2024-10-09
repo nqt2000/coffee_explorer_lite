@@ -42,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Welcome, ${userFullName ?? 'User'}'),
-          //, ${isAdmin == true ? 'Admin' : 'User'},
           actions: [
             IconButton(
               icon: Icon(Icons.logout),
@@ -56,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        resizeToAvoidBottomInset: true,
         body: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
             if (state is HomeLoading) {
@@ -84,7 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         final cafe = state.filteredCafes[index];
                         return Dismissible(
                           key: Key(cafe['id'].toString()),
-                          direction: DismissDirection.horizontal,
+                          direction: isAdmin == true
+                              ? DismissDirection.horizontal
+                              : DismissDirection.none,
+                          // Chỉ admin mới có thể kéo
                           background: Container(
                             margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
                             padding: EdgeInsets.symmetric(horizontal: 30),
@@ -120,7 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.of(context).pop(false),
-                                        child: Text('Cancel'),
+                                        child: Text(
+                                          'Cancel',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
                                       ),
                                       TextButton(
                                         onPressed: () =>
@@ -221,13 +225,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: ElevatedButton(
-                      onPressed: () => _showAddCafeDialog(context),
-                      child: Text('Add Cafe'),
+                  if (isAdmin == true) // Chỉ hiện nút thêm quán cho admin
+                    Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: ElevatedButton(
+                        onPressed: () => _showAddCafeDialog(context),
+                        child: Text('Add Cafe'),
+                      ),
                     ),
-                  ),
                 ],
               );
             } else {
@@ -240,178 +245,198 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showAddImagesDialog(BuildContext context, int cafeId) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return BlocProvider.value(
-          value: BlocProvider.of<HomeBloc>(context),
-          child: AlertDialog(
-            title: Text('Add Images'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
+    if (isAdmin == true) {
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return BlocProvider.value(
+            value: BlocProvider.of<HomeBloc>(context),
+            child: AlertDialog(
+              title: Text('Add Images'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<HomeBloc>().add(PickImages());
+                    },
+                    child: Text('Upload Images'),
+                  ),
+                  BlocBuilder<HomeBloc, HomeState>(
+                    builder: (context, state) {
+                      if (state is ImagePicked) {
+                        return Wrap(
+                          spacing: 8.0,
+                          children: state.imagePaths.map((path) {
+                            return Image.file(File(path),
+                                width: 100, height: 100, fit: BoxFit.contain);
+                          }).toList(),
+                        );
+                      }
+                      return Container();
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
                   onPressed: () {
-                    context.read<HomeBloc>().add(PickImages());
+                    Navigator.of(dialogContext).pop();
                   },
-                  child: Text('Upload Images'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
                 BlocBuilder<HomeBloc, HomeState>(
                   builder: (context, state) {
-                    if (state is ImagePicked) {
-                      return Wrap(
-                        spacing: 8.0,
-                        children: state.imagePaths.map((path) {
-                          return Image.file(File(path),
-                              width: 100, height: 100, fit: BoxFit.contain);
-                        }).toList(),
-                      );
-                    }
-                    return Container();
+                    return TextButton(
+                      onPressed: () {
+                        if (state is ImagePicked) {
+                          context
+                              .read<HomeBloc>()
+                              .add(AddImagesToCafe(cafeId, state.imagePaths));
+                          Navigator.of(dialogContext).pop();
+                        }
+                      },
+                      child: Text('Add Images'),
+                    );
                   },
                 ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text('Cancel'),
-              ),
-              BlocBuilder<HomeBloc, HomeState>(
-                builder: (context, state) {
-                  return TextButton(
-                    onPressed: () {
-                      if (state is ImagePicked) {
-                        context
-                            .read<HomeBloc>()
-                            .add(AddImagesToCafe(cafeId, state.imagePaths));
-                        Navigator.of(dialogContext).pop();
-                      }
-                    },
-                    child: Text('Add Images'),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Only admins can add images!')),
+      );
+    }
   }
 
   Future<void> _showAddCafeDialog(BuildContext context) async {
-    final nameController = TextEditingController();
-    final addressController = TextEditingController();
-    final descriptionController = TextEditingController();
+    if (isAdmin == true) {
+      // Hiển thị hộp thoại thêm quán cà phê nếu là admin
+      final nameController = TextEditingController();
+      final addressController = TextEditingController();
+      final descriptionController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return BlocProvider.value(
-          value: BlocProvider.of<HomeBloc>(context),
-          child: AlertDialog(
-            title: Text('Add Cafe'),
-            content: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                ),
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: nameController,
-                        decoration: InputDecoration(labelText: 'Cafe Name'),
-                        minLines: 1,
-                        maxLines: 2,
-                      ),
-                      TextField(
-                        controller: addressController,
-                        decoration: InputDecoration(labelText: 'Address'),
-                        minLines: 1,
-                        maxLines: 2,
-                      ),
-                      TextField(
-                        controller: descriptionController,
-                        decoration: InputDecoration(labelText: 'Description'),
-                        minLines: 5,
-                        maxLines: 6,
-                        keyboardType: TextInputType.multiline,
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<HomeBloc>().add(PickImages());
-                        },
-                        child: Text('Upload Images'),
-                      ),
-                      BlocBuilder<HomeBloc, HomeState>(
-                        builder: (context, state) {
-                          if (state is ImagePicked) {
-                            return Wrap(
-                              spacing: 8.0,
-                              children: state.imagePaths.map((path) {
-                                return Image.file(File(path),
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.contain);
-                              }).toList(),
-                            );
-                          }
-                          return Container();
-                        },
-                      ),
-                    ],
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return BlocProvider.value(
+            value: BlocProvider.of<HomeBloc>(context),
+            child: AlertDialog(
+              title: Text('Add Cafe'),
+              content: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.5,
+                  ),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: nameController,
+                          decoration: InputDecoration(labelText: 'Cafe Name'),
+                          minLines: 1,
+                          maxLines: 2,
+                        ),
+                        TextField(
+                          controller: addressController,
+                          decoration: InputDecoration(labelText: 'Address'),
+                          minLines: 1,
+                          maxLines: 2,
+                        ),
+                        TextField(
+                          controller: descriptionController,
+                          decoration: InputDecoration(labelText: 'Description'),
+                          minLines: 5,
+                          maxLines: 6,
+                          keyboardType: TextInputType.multiline,
+                        ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<HomeBloc>().add(PickImages());
+                          },
+                          child: Text('Upload Images'),
+                        ),
+                        BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, state) {
+                            if (state is ImagePicked) {
+                              return Wrap(
+                                spacing: 8.0,
+                                children: state.imagePaths.map((path) {
+                                  return Image.file(File(path),
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.contain);
+                                }).toList(),
+                              );
+                            }
+                            return Container();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+                BlocBuilder<HomeBloc, HomeState>(
+                  builder: (context, state) {
+                    return TextButton(
+                      onPressed: () {
+                        final name = nameController.text.trim();
+                        final address = addressController.text.trim();
+
+                        if (name.isEmpty || address.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('Name and address are required!')),
+                          );
+                          return;
+                        }
+
+                        final newCafe = {
+                          'name': name,
+                          'address': address,
+                          'description': descriptionController.text,
+                          'imagePath': state is ImagePicked &&
+                                  state.imagePaths.isNotEmpty
+                              ? state.imagePaths[0]
+                              : '',
+                        };
+                        context.read<HomeBloc>().add(AddCafe(newCafe));
+                        Navigator.of(dialogContext).pop();
+                      },
+                      child: Text('Add'),
+                    );
+                  },
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text('Cancel'),
-              ),
-              BlocBuilder<HomeBloc, HomeState>(
-                builder: (context, state) {
-                  return TextButton(
-                    onPressed: () {
-                      final name = nameController.text.trim();
-                      final address = addressController.text.trim();
-
-                      if (name.isEmpty || address.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Name and address are required!')),
-                        );
-                        return;
-                      }
-
-                      final newCafe = {
-                        'name': name,
-                        'address': address,
-                        'description': descriptionController.text,
-                        'imagePath':
-                            state is ImagePicked && state.imagePaths.isNotEmpty
-                                ? state.imagePaths[0]
-                                : '',
-                      };
-                      context.read<HomeBloc>().add(AddCafe(newCafe));
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: Text('Add'),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Only admins can add cafes!')),
+      );
+    }
   }
 }
