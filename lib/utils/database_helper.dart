@@ -208,7 +208,7 @@ class DatabaseHelper {
     Database? db = await instance.database;
     List<Map> result = await db!.query(
       userTable,
-      columns: [userName, userEmail, userIsAdmin],
+      columns: [userId, userName, userEmail, userIsAdmin],
       where: '$userEmail = ?',
       whereArgs: [email],
     );

@@ -7,6 +7,7 @@ import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
 import 'full_size_image_screen.dart';
 import '../../utils/database_helper.dart';
+import '../../utils/session_manager.dart';
 
 class CafeDetailScreen extends StatelessWidget {
   final Map<String, dynamic> cafe;
@@ -52,7 +53,7 @@ class CafeDetailScreen extends StatelessWidget {
                               fit: fit,
                             );
                           } else {
-                            return CircularProgressIndicator();
+                            return const CircularProgressIndicator();
                           }
                         },
                       );
@@ -61,7 +62,7 @@ class CafeDetailScreen extends StatelessWidget {
                 ),
               )
             else
-              Icon(
+              const Icon(
                 Icons.image,
                 color: Colors.grey,
                 size: 40,
@@ -69,7 +70,7 @@ class CafeDetailScreen extends StatelessWidget {
             Expanded(
               child: Text(
                 cafe['name'],
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -96,6 +97,27 @@ class CafeDetailBody extends StatefulWidget {
 
 class _CafeDetailBodyState extends State<CafeDetailBody> {
   bool _isAddingComment = false;
+  late int userId;
+  String userFullName = 'User';
+  bool isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserSession();
+  }
+
+  Future<void> _loadUserSession() async {
+    final sessionManager = SessionManager();
+    final userInfo = await sessionManager.getUserInfo();
+
+    setState(() {
+      userId = userInfo?['id'] ?? 0;
+      userFullName = userInfo?['name'] ?? 'User';
+      isAdmin = (userInfo?['isAdmin'] ?? 0) == 1;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,9 +131,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
               future: DatabaseHelper.instance.getCafeImages(widget.cafe['id']),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
-                  return Text('Error loading images');
+                  return const Text('Error loading images');
                 } else {
                   final imagePaths = snapshot.data ?? [];
                   return imagePaths.isNotEmpty
@@ -149,7 +171,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 },
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children:
@@ -159,7 +181,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                       horizontal: 4.0),
                                   width: 8.0,
                                   height: 8.0,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.grey,
                                   ),
@@ -168,26 +190,26 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             )
                           ],
                         )
-                      : Center(
+                      : const Center(
                           child:
                               Icon(Icons.image, size: 300, color: Colors.grey),
                         );
                 }
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('Address: ${widget.cafe['address']}',
-                style: TextStyle(fontSize: 18)),
-            SizedBox(height: 8),
+                style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
             Text('Description: ${widget.cafe['description']}',
-                style: TextStyle(fontSize: 16)),
-            SizedBox(height: 16),
-            Text('Comments',
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 16),
+            const Text('Comments',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             BlocBuilder<CommentBloc, CommentState>(
               builder: (context, state) {
                 if (state is CommentLoading) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (state is CommentLoaded) {
                   if (state.comments.isNotEmpty) {
                     return Column(
@@ -205,16 +227,18 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 _isAddingComment = false;
                               });
                             },
+                            userId: userId!,
                           ),
                         ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemCount: state.comments.length,
                           itemBuilder: (context, index) {
                             final comment = state.comments[index];
                             return ListTile(
                               title: Text(comment['commentText']),
-                              subtitle: Text('User ID: ${comment['userId']}'),
+                              subtitle:
+                                  Text('Comment by: ${comment['userName']}'),
                             );
                           },
                         ),
@@ -226,7 +250,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                   _isAddingComment = true;
                                 });
                               },
-                              child: Text('Add a comment'),
+                              child: const Text('Add a comment'),
                             ),
                           ),
                       ],
@@ -234,8 +258,8 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                   } else {
                     return Column(
                       children: [
-                        Text('No comments available.'),
-                        SizedBox(height: 8),
+                        const Text('No comments available.'),
+                        const SizedBox(height: 8),
                         if (_isAddingComment)
                           AddCommentForm(
                             cafeId: widget.cafe['id'],
@@ -249,6 +273,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 _isAddingComment = false;
                               });
                             },
+                            userId: userId!, // Pass the current userId
                           ),
                         if (!_isAddingComment)
                           Center(
@@ -258,7 +283,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                   _isAddingComment = true;
                                 });
                               },
-                              child: Text('Add a comment'),
+                              child: const Text('Add a comment'),
                             ),
                           ),
                       ],
@@ -267,7 +292,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                 } else if (state is CommentError) {
                   return Center(child: Text(state.message));
                 } else {
-                  return Center(child: Text('No comments found'));
+                  return const Center(child: Text('No comments found'));
                 }
               },
             ),
@@ -280,7 +305,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
 
 Future<ImageInfo> _getImageInfo(Image image) async {
   final completer = Completer<ImageInfo>();
-  image.image.resolve(ImageConfiguration()).addListener(
+  image.image.resolve(const ImageConfiguration()).addListener(
     ImageStreamListener((ImageInfo info, bool _) {
       completer.complete(info);
     }),
@@ -292,11 +317,14 @@ class AddCommentForm extends StatefulWidget {
   final int cafeId;
   final VoidCallback onSubmitSuccess;
   final VoidCallback onCancel;
+  final int userId;
 
-  const AddCommentForm({super.key,
+  const AddCommentForm({
+    super.key,
     required this.cafeId,
     required this.onSubmitSuccess,
     required this.onCancel,
+    required this.userId,
   });
 
   @override
@@ -319,18 +347,18 @@ class _AddCommentFormState extends State<AddCommentForm> {
       children: [
         TextField(
           controller: _commentController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Add a comment',
             border: OutlineInputBorder(),
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             TextButton(
               onPressed: widget.onCancel,
-              child: Text(
+              child: const Text(
                 'Cancel',
                 style: TextStyle(color: Colors.red),
               ),
@@ -340,18 +368,15 @@ class _AddCommentFormState extends State<AddCommentForm> {
                 final commentText = _commentController.text;
                 if (commentText.isNotEmpty) {
                   BlocProvider.of<CommentBloc>(context).add(
-                    AddComment(widget.cafeId, 1, commentText),
+                    AddComment(widget.cafeId, widget.userId, commentText),
                   );
                   _commentController.clear();
-                  widget.onSubmitSuccess(); // Gọi callback để ẩn form
+                  widget.onSubmitSuccess();
                 }
               },
-              child: Text(
-                'Submit',
-                // style: TextStyle(color: Colors.blue),
-              ),
+              child: const Text('Submit'),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
           ],
         ),
       ],
