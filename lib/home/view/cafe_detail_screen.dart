@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
@@ -118,7 +119,6 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -227,7 +227,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 _isAddingComment = false;
                               });
                             },
-                            userId: userId!,
+                            userId: userId,
                           ),
                         ListView.builder(
                           physics: const NeverScrollableScrollPhysics(),
@@ -235,10 +235,38 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                           itemCount: state.comments.length,
                           itemBuilder: (context, index) {
                             final comment = state.comments[index];
-                            return ListTile(
-                              title: Text(comment['commentText']),
-                              subtitle:
-                                  Text('Comment by: ${comment['userName']}'),
+                            final userName = comment['userName'] ?? 'Anonymous';
+                            final timestamp = comment['timestamp'];
+
+                            final formattedTime = timestamp != null
+                                ? DateFormat('dd/MM/yyyy')
+                                    .format(DateTime.parse(timestamp))
+                                : '';
+
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$userName - $formattedTime',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      border: Border.all(color: Colors.grey),
+                                    ),
+                                    child: Text(comment['commentText']),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -273,7 +301,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 _isAddingComment = false;
                               });
                             },
-                            userId: userId!, // Pass the current userId
+                            userId: userId,
                           ),
                         if (!_isAddingComment)
                           Center(
@@ -314,17 +342,17 @@ Future<ImageInfo> _getImageInfo(Image image) async {
 }
 
 class AddCommentForm extends StatefulWidget {
+  final int userId;
   final int cafeId;
   final VoidCallback onSubmitSuccess;
   final VoidCallback onCancel;
-  final int userId;
 
   const AddCommentForm({
     super.key,
+    required this.userId,
     required this.cafeId,
     required this.onSubmitSuccess,
     required this.onCancel,
-    required this.userId,
   });
 
   @override
@@ -351,6 +379,8 @@ class _AddCommentFormState extends State<AddCommentForm> {
             labelText: 'Add a comment',
             border: OutlineInputBorder(),
           ),
+          maxLines: null,
+          keyboardType: TextInputType.multiline,
         ),
         const SizedBox(height: 8),
         Row(
@@ -368,7 +398,7 @@ class _AddCommentFormState extends State<AddCommentForm> {
                 final commentText = _commentController.text;
                 if (commentText.isNotEmpty) {
                   BlocProvider.of<CommentBloc>(context).add(
-                    AddComment(widget.cafeId, widget.userId, commentText),
+                    AddComment(widget.cafeId, commentText),
                   );
                   _commentController.clear();
                   widget.onSubmitSuccess();

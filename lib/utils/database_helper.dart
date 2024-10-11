@@ -69,26 +69,26 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-  CREATE TABLE $imageTable (
-    $imageId INTEGER PRIMARY KEY AUTOINCREMENT,
-    $idCafe INTEGER NOT NULL,
-    $cafeImagePath TEXT NOT NULL,
-    FOREIGN KEY ($idCafe) REFERENCES $cafeTable ($cafeId) ON DELETE CASCADE
-  )
-''');
+      CREATE TABLE $imageTable (
+        $imageId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $idCafe INTEGER NOT NULL,
+        $cafeImagePath TEXT NOT NULL,
+      FOREIGN KEY ($idCafe) REFERENCES $cafeTable ($cafeId) ON DELETE CASCADE
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE $commentTable (
-      $commentId INTEGER PRIMARY KEY AUTOINCREMENT,
-      $idCafe INTEGER NOT NULL,
-      $idUser INTEGER NOT NULL,
-      $commentUserText TEXT NOT NULL,
-      $commentTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-      $commentIsHidden INTEGER DEFAULT 0,
-      FOREIGN KEY ($idCafe) REFERENCES $cafeTable ($cafeId),
-      FOREIGN KEY ($idUser) REFERENCES $userTable ($userId)
-    )
-  ''');
+      CREATE TABLE $commentTable (
+        $commentId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $idCafe INTEGER NOT NULL,
+        $idUser INTEGER NOT NULL,
+        $commentUserText TEXT NOT NULL,
+        $commentTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        $commentIsHidden INTEGER DEFAULT 0,
+        FOREIGN KEY ($idCafe) REFERENCES $cafeTable ($cafeId),
+        FOREIGN KEY ($idUser) REFERENCES $userTable ($userId)
+      )
+    ''');
 
     final users = [
       {
@@ -148,11 +148,15 @@ class DatabaseHelper {
 
   Future<int> insertCafe(Map<String, dynamic> row) async {
     Database? db = await instance.database;
-    if (row[cafeName] == null || row[cafeName].toString().isEmpty) {
+    if (row[cafeName] == null || row[cafeName]
+        .toString()
+        .isEmpty) {
       throw Exception('Cafe name is required!');
     }
 
-    if (row[cafeAddress] == null || row[cafeAddress].toString().isEmpty) {
+    if (row[cafeAddress] == null || row[cafeAddress]
+        .toString()
+        .isEmpty) {
       throw Exception('Cafe address is required!');
     }
     return await db!.insert(cafeTable, row);
@@ -294,7 +298,7 @@ class DatabaseHelper {
       throw Exception('Only admins can hide comments.');
     }
 
-    return await db!.update(
+    return await db.update(
       commentTable,
       {commentIsHidden: 1},
       where: '$commentId = ?',
@@ -302,14 +306,28 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getCommentsByCafe(int cid) async {
-    Database? db = await instance.database;
-    return await db!.query(
-      commentTable,
-      where: '$idCafe = ? AND $commentIsHidden = 0',
-      whereArgs: [cid],
-      orderBy: '$commentTimestamp DESC',
-    );
-  }
+//   Future<List<Map<String, dynamic>>> getCommentsByCafe(int cid) async {
+//     Database? db = await instance.database;
+//     return await db!.query(
+//       commentTable,
+//       where: '$idCafe = ? AND $commentIsHidden = 0',
+//       whereArgs: [cid],
+//       orderBy: '$commentTimestamp DESC',
+//     );
+//   }
+// }
 
+  Future<List<Map<String, dynamic>>> getCommentsByCafe(int cid) async {
+    final db = await database;
+
+    final result = await db!.rawQuery('''
+    SELECT c.$commentUserText, u.$userName AS userName, c.$commentTimestamp
+    FROM $commentTable c
+    JOIN $userTable u ON c.$idUser = u.$userId
+    WHERE c.$idCafe = ?
+    ORDER BY $commentTimestamp DESC
+  ''', [cid]);
+
+    return result;
+  }
 }

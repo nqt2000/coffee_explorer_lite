@@ -14,7 +14,7 @@ class CommentLoading extends CommentState {}
 class CommentError extends CommentState {
   final String message;
 
-  CommentError(this.message);
+  const CommentError(this.message);
 
   @override
   List<Object?> get props => [message];

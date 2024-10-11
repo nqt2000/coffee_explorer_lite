@@ -85,7 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           direction: isAdmin == true
                               ? DismissDirection.horizontal
                               : DismissDirection.none,
-                          // Chỉ admin mới có thể kéo
                           background: Container(
                             margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
                             padding: EdgeInsets.symmetric(horizontal: 30),
@@ -317,7 +316,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _showAddCafeDialog(BuildContext context) async {
     if (isAdmin == true) {
-      // Hiển thị hộp thoại thêm quán cà phê nếu là admin
       final nameController = TextEditingController();
       final addressController = TextEditingController();
       final descriptionController = TextEditingController();
