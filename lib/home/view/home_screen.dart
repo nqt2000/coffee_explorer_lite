@@ -224,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                   ),
-                  if (isAdmin == true) // Chỉ hiện nút thêm quán cho admin
+                  if (isAdmin == true)
                     Padding(
                       padding: const EdgeInsets.all(15.0),
                       child: ElevatedButton(

@@ -80,7 +80,7 @@ class CafeDetailScreen extends StatelessWidget {
       ),
       body: BlocProvider(
         create: (context) => CommentBloc(DatabaseHelper.instance)
-          ..add(FetchComments(cafe['id'])), // Fetch comments for the cafe
+          ..add(FetchComments(cafe['id'])),
         child: CafeDetailBody(cafe: cafe),
       ),
     );
@@ -101,11 +101,21 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
   late int userId;
   String userFullName = 'User';
   bool isAdmin = false;
+  // late int commentId;
+  int _currentIndex = 0;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _loadUserSession();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserSession() async {
@@ -143,6 +153,12 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                               height: 350,
                               width: 350,
                               child: PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _currentIndex = index;
+                                  });
+                                },
                                 itemCount: imagePaths.length,
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
@@ -164,6 +180,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                         child: Image.file(
                                           File(imagePaths[index]),
                                           fit: BoxFit.cover,
+                                          filterQuality: FilterQuality.high,
+                                          color: Colors.black.withOpacity(0.1),
+                                          colorBlendMode: BlendMode.darken,
                                         ),
                                       ),
                                     ),
@@ -176,18 +195,43 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children:
                                   List.generate(imagePaths.length, (index) {
-                                return Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 4.0),
-                                  width: 8.0,
-                                  height: 8.0,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.grey,
+                                return GestureDetector(
+                                  onTap: () {
+                                    // _pageController.animateToPage(
+                                    //   index,
+                                    //   duration:
+                                    //       const Duration(milliseconds: 300),
+                                    //   curve: Curves.easeInOut,
+                                    // );
+                                    _pageController.jumpToPage(index);
+                                  },
+
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 4.0),
+                                    width: index == _currentIndex ? 12.0 : 8.0,
+                                    height: index == _currentIndex ? 12.0 : 8.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: index == _currentIndex
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                      boxShadow: index == _currentIndex
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.blue
+                                                    .withOpacity(0.6),
+                                                spreadRadius: 2,
+                                                blurRadius: 4,
+                                              ),
+                                            ]
+                                          : [],
+                                    ),
                                   ),
                                 );
                               }),
-                            )
+                            ),
                           ],
                         )
                       : const Center(
@@ -197,12 +241,32 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                 }
               },
             ),
-            const SizedBox(height: 16),
-            Text('Address: ${widget.cafe['address']}',
-                style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Text('Description: ${widget.cafe['description']}',
-                style: const TextStyle(fontSize: 16)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on, size: 20, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${widget.cafe['address']}',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.description, size: 20, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${widget.cafe['description']}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             const Text('Comments',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -237,35 +301,67 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             final comment = state.comments[index];
                             final userName = comment['userName'] ?? 'Anonymous';
                             final timestamp = comment['timestamp'];
+                            final isCommentHidden = comment['isHidden'] == 1;
 
                             final formattedTime = timestamp != null
                                 ? DateFormat('dd/MM/yyyy')
                                     .format(DateTime.parse(timestamp))
                                 : '';
 
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '$userName - $formattedTime',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontStyle: FontStyle.italic,
+                            return Visibility(
+                              visible: !isCommentHidden ||
+                                  isAdmin ||
+                                  comment['userId'] == userId,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          '$userName - $formattedTime',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontStyle: FontStyle.italic,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        if (isAdmin ||
+                                            comment['userId'] == userId)
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () {
+                                              if (comment['commentId'] !=
+                                                  null) {
+                                                BlocProvider.of<CommentBloc>(
+                                                        context)
+                                                    .add(
+                                                  HideComment(
+                                                      comment['commentId']),
+                                                );
+                                              } else {
+                                                print('Comment ID is null');
+                                              }
+                                            },
+                                          ),
+                                      ],
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    padding: const EdgeInsets.all(12.0),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      border: Border.all(color: Colors.grey),
+                                    Container(
+                                      padding: const EdgeInsets.all(12.0),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        color: Colors.grey[200],
+                                      ),
+                                      child: Text(comment['commentText']),
                                     ),
-                                    child: Text(comment['commentText']),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           },

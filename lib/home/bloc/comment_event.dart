@@ -4,7 +4,7 @@ abstract class CommentEvent extends Equatable {
   const CommentEvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class AddComment extends CommentEvent {
@@ -14,16 +14,7 @@ class AddComment extends CommentEvent {
   AddComment(this.cafeId, this.commentText);
 
   @override
-  List<Object?> get props => [cafeId, commentText];
-}
-
-class DeleteComment extends CommentEvent {
-  final int commentId;
-
-  DeleteComment(this.commentId);
-
-  @override
-  List<Object?> get props => [commentId];
+  List<Object> get props => [cafeId, commentText];
 }
 
 class UpdateComment extends CommentEvent {
@@ -33,7 +24,7 @@ class UpdateComment extends CommentEvent {
   UpdateComment(this.commentId, this.newText);
 
   @override
-  List<Object?> get props => [commentId, newText];
+  List<Object> get props => [commentId, newText];
 }
 
 class HideComment extends CommentEvent {
@@ -42,7 +33,7 @@ class HideComment extends CommentEvent {
   HideComment(this.commentId);
 
   @override
-  List<Object?> get props => [commentId];
+  List<Object> get props => [commentId];
 }
 
 class FetchComments extends CommentEvent {
@@ -51,5 +42,5 @@ class FetchComments extends CommentEvent {
   FetchComments(this.cafeId);
 
   @override
-  List<Object?> get props => [cafeId];
+  List<Object> get props => [cafeId];
 }

@@ -254,21 +254,6 @@ class DatabaseHelper {
     return adminCheck.isNotEmpty;
   }
 
-  Future<int> deleteComment(int cid, int uid) async {
-    Database? db = await instance.database;
-
-    bool canDelete = await canEditOrDeleteComment(cid, uid);
-    if (!canDelete) {
-      throw Exception('You do not have permission to delete this comment.');
-    }
-
-    return await db!.delete(
-      commentTable,
-      where: '$commentId = ?',
-      whereArgs: [cid],
-    );
-  }
-
   Future<int> updateComment(int cid, String newText, int uid) async {
     Database? db = await instance.database;
 
@@ -306,16 +291,16 @@ class DatabaseHelper {
     );
   }
 
-//   Future<List<Map<String, dynamic>>> getCommentsByCafe(int cid) async {
-//     Database? db = await instance.database;
-//     return await db!.query(
-//       commentTable,
-//       where: '$idCafe = ? AND $commentIsHidden = 0',
-//       whereArgs: [cid],
-//       orderBy: '$commentTimestamp DESC',
-//     );
-//   }
-// }
+  Future<Map<String, dynamic>> getCommentById(int cid) async {
+    final db = await database;
+    final result = await db?.query(
+      commentTable,
+      where: '$commentId = ?',
+      whereArgs: [cid],
+    );
+
+    return result!.isNotEmpty ? result.first : {};
+  }
 
   Future<List<Map<String, dynamic>>> getCommentsByCafe(int cid) async {
     final db = await database;
@@ -324,7 +309,7 @@ class DatabaseHelper {
     SELECT c.$commentUserText, u.$userName AS userName, c.$commentTimestamp
     FROM $commentTable c
     JOIN $userTable u ON c.$idUser = u.$userId
-    WHERE c.$idCafe = ?
+    WHERE c.$idCafe = ? AND c.$commentIsHidden = 0
     ORDER BY $commentTimestamp DESC
   ''', [cid]);
 

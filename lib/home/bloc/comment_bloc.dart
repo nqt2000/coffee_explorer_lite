@@ -9,7 +9,6 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
 
   CommentBloc(this._dbHelper) : super(CommentInitial()) {
     on<AddComment>(_onAddComment);
-    on<DeleteComment>(_onDeleteComment);
     on<UpdateComment>(_onUpdateComment);
     on<HideComment>(_onHideComment);
     on<FetchComments>(_onFetchComments);
@@ -19,6 +18,12 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     SessionManager sessionManager = SessionManager();
     Map<String, dynamic>? userInfo = await sessionManager.getUserInfo();
     return userInfo?['id'];
+  }
+
+  Future<bool> _isAdmin() async {
+    SessionManager sessionManager = SessionManager();
+    Map<String, dynamic>? userInfo = await sessionManager.getUserInfo();
+    return (userInfo?['isAdmin'] ?? 0) == 1;
   }
 
   Future<void> _onAddComment(AddComment event, Emitter<CommentState> emit) async {
@@ -35,22 +40,6 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       }
     } catch (e) {
       emit(CommentError('Failed to add comment: $e'));
-    }
-  }
-
-  Future<void> _onDeleteComment(DeleteComment event, Emitter<CommentState> emit) async {
-    try {
-      emit(CommentLoading());
-
-      int? userId = await _getUserId();
-      if (userId != null) {
-        await _dbHelper.deleteComment(event.commentId, userId);
-        emit(CommentActionSuccess());
-      } else {
-        emit(CommentError('User not logged in.'));
-      }
-    } catch (e) {
-      emit(CommentError('Failed to delete comment: $e'));
     }
   }
 
@@ -75,9 +64,17 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       emit(CommentLoading());
 
       int? userId = await _getUserId();
+      bool isAdmin = await _isAdmin();
+
       if (userId != null) {
-        await _dbHelper.hideComment(event.commentId, userId);
-        emit(CommentActionSuccess());
+        final comment = await _dbHelper.getCommentById(event.commentId);
+
+        if (isAdmin || comment['userId'] == userId) {
+          await _dbHelper.hideComment(event.commentId, userId);
+          emit(CommentActionSuccess());
+        } else {
+          emit(CommentError('You do not have permission to hide this comment.'));
+        }
       } else {
         emit(CommentError('User not logged in.'));
       }
@@ -85,6 +82,8 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       emit(CommentError('Failed to hide comment: $e'));
     }
   }
+
+
 
   Future<void> _onFetchComments(FetchComments event, Emitter<CommentState> emit) async {
     try {
