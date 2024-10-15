@@ -101,21 +101,30 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
   late int userId;
   String userFullName = 'User';
   bool isAdmin = false;
-  // late int commentId;
   int _currentIndex = 0;
-  late PageController _pageController;
+  PageController? _pageController;
+  List<String> imagePaths = [];
 
   @override
   void initState() {
     super.initState();
     _loadUserSession();
-    _pageController = PageController(initialPage: 0);
+    _loadImagePaths();
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _pageController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadImagePaths() async {
+    final images =
+        await DatabaseHelper.instance.getCafeImages(widget.cafe['id']);
+    setState(() {
+      imagePaths = images;
+      _pageController = PageController(initialPage: _currentIndex);
+    });
   }
 
   Future<void> _loadUserSession() async {
@@ -131,115 +140,87 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
 
   @override
   Widget build(BuildContext context) {
+    if (imagePaths.isEmpty || _pageController == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FutureBuilder<List<String>>(
-              future: DatabaseHelper.instance.getCafeImages(widget.cafe['id']),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return const Text('Error loading images');
-                } else {
-                  final imagePaths = snapshot.data ?? [];
-                  return imagePaths.isNotEmpty
-                      ? Column(
-                          children: [
-                            SizedBox(
-                              height: 350,
-                              width: 350,
-                              child: PageView.builder(
-                                controller: _pageController,
-                                onPageChanged: (index) {
-                                  setState(() {
-                                    _currentIndex = index;
-                                  });
-                                },
-                                itemCount: imagePaths.length,
-                                itemBuilder: (context, index) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              FullSizeImageScreen(
-                                            imageUrl: imagePaths[index],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Image.file(
-                                          File(imagePaths[index]),
-                                          fit: BoxFit.cover,
-                                          filterQuality: FilterQuality.high,
-                                          color: Colors.black.withOpacity(0.1),
-                                          colorBlendMode: BlendMode.darken,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+            SizedBox(
+              height: 350,
+              width: 350,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: imagePaths.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                  print('Total number of images: ${imagePaths.length}');
+                  print('Current index updated: $_currentIndex');
+                },
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullSizeImageScreen(
+                            imageUrl: imagePaths[index],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Image.file(
+                          File(imagePaths[index]),
+                          fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
+                          color: Colors.black.withOpacity(0.1),
+                          colorBlendMode: BlendMode.darken,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(imagePaths.length, (index) {
+                return GestureDetector(
+                  onTap: () {
+                    _pageController?.jumpToPage(index);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                    width: index == _currentIndex ? 12.0 : 8.0,
+                    height: index == _currentIndex ? 12.0 : 8.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: index == _currentIndex ? Colors.blue : Colors.grey,
+                      boxShadow: index == _currentIndex
+                          ? [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.6),
+                                spreadRadius: 2,
+                                blurRadius: 4,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children:
-                                  List.generate(imagePaths.length, (index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    // _pageController.animateToPage(
-                                    //   index,
-                                    //   duration:
-                                    //       const Duration(milliseconds: 300),
-                                    //   curve: Curves.easeInOut,
-                                    // );
-                                    _pageController.jumpToPage(index);
-                                  },
-
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 4.0),
-                                    width: index == _currentIndex ? 12.0 : 8.0,
-                                    height: index == _currentIndex ? 12.0 : 8.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: index == _currentIndex
-                                          ? Colors.blue
-                                          : Colors.grey,
-                                      boxShadow: index == _currentIndex
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.blue
-                                                    .withOpacity(0.6),
-                                                spreadRadius: 2,
-                                                blurRadius: 4,
-                                              ),
-                                            ]
-                                          : [],
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ],
-                        )
-                      : const Center(
-                          child:
-                              Icon(Icons.image, size: 300, color: Colors.grey),
-                        );
-                }
-              },
+                            ]
+                          : [],
+                    ),
+                  ),
+                );
+              }),
             ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,7 +363,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                   } else {
                     return Column(
                       children: [
-                        const Text('No comments available.'),
+                        const Text('No comments yet!'),
                         const SizedBox(height: 8),
                         if (_isAddingComment)
                           AddCommentForm(

@@ -334,8 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.8,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    child: ListView(
                       children: [
                         TextField(
                           controller: nameController,
@@ -366,14 +365,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         BlocBuilder<HomeBloc, HomeState>(
                           builder: (context, state) {
                             if (state is ImagePicked) {
-                              return Wrap(
+                              return Center(
+                                child: Wrap(
                                 spacing: 8.0,
                                 children: state.imagePaths.map((path) {
                                   return Image.file(File(path),
                                       width: 100,
                                       height: 100,
-                                      fit: BoxFit.contain);
+                                      fit: BoxFit.contain
+                                  );
                                 }).toList(),
+                                ),
                               );
                             }
                             return Container();
