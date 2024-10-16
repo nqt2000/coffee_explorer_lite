@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
@@ -15,73 +16,104 @@ class CafeDetailScreen extends StatelessWidget {
 
   const CafeDetailScreen({super.key, required this.cafe});
 
+  Future<void> _pickImage(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      await DatabaseHelper.instance.updateCafeImage(cafe['id'], image.path);
+
+      cafe['imagePath'] = image.path;
+
+      (context as Element).markNeedsBuild();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            if (cafe['imagePath'] != null && cafe['imagePath'].isNotEmpty)
-              Container(
-                width: 40,
-                height: 40,
-                margin: const EdgeInsets.only(right: 8.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  color: Colors.grey[200],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final image = Image.file(File(cafe['imagePath']));
+    return PopScope(
+      // onPopInvokedWithResult: (shouldPop) async {
+      //   if (shouldPop) {
+      //     Navigator.pop(context, cafe);
+      //   }
+      // },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              GestureDetector(
+                onTap: () => _pickImage(context),
+                child: cafe['imagePath'] != null && cafe['imagePath'].isNotEmpty
+                    ? Container(
+                        width: 40,
+                        height: 40,
+                        margin: const EdgeInsets.only(right: 8.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          color: Colors.grey[200],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final image = Image.file(File(cafe['imagePath']));
 
-                      return FutureBuilder<ImageInfo>(
-                        future: _getImageInfo(image),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                                  ConnectionState.done &&
-                              snapshot.hasData) {
-                            final imageInfo = snapshot.data!;
-                            final aspectRatio =
-                                imageInfo.image.width / imageInfo.image.height;
-                            final fit = aspectRatio > 1
-                                ? BoxFit.fitWidth
-                                : BoxFit.fitHeight;
+                              return FutureBuilder<ImageInfo>(
+                                future: _getImageInfo(image),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData) {
+                                    final imageInfo = snapshot.data!;
+                                    final aspectRatio = imageInfo.image.width /
+                                        imageInfo.image.height;
+                                    final fit = aspectRatio > 1
+                                        ? BoxFit.fitWidth
+                                        : BoxFit.fitHeight;
 
-                            return Image.file(
-                              File(cafe['imagePath']),
-                              fit: fit,
-                            );
-                          } else {
-                            return const CircularProgressIndicator();
-                          }
-                        },
-                      );
-                    },
-                  ),
+                                    return Image.file(
+                                      File(cafe['imagePath']),
+                                      fit: fit,
+                                    );
+                                  } else if (snapshot.hasError ||
+                                      !snapshot.hasData) {
+                                    return Icon(Icons.image,
+                                        color: Colors.grey,
+                                        size:
+                                            30); // Hiển thị biểu tượng ảnh nếu có lỗi hoặc không có dữ liệu
+                                  } else {
+                                    return Icon(Icons.image,
+                                        color: Colors.grey,
+                                        size:
+                                            30); // Không chờ đợi, luôn hiển thị biểu tượng ảnh ngay lập tức
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.image,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
+              ),
+              Expanded(
+                child: Text(
+                  cafe['name'],
+                  style: const TextStyle(fontSize: 18),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              )
-            else
-              const Icon(
-                Icons.image,
-                color: Colors.grey,
-                size: 40,
               ),
-            Expanded(
-              child: Text(
-                cafe['name'],
-                style: const TextStyle(fontSize: 18),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      body: BlocProvider(
-        create: (context) => CommentBloc(DatabaseHelper.instance)
-          ..add(FetchComments(cafe['id'])),
-        child: CafeDetailBody(cafe: cafe),
+        body: BlocProvider(
+          create: (context) => CommentBloc(DatabaseHelper.instance)
+            ..add(FetchComments(cafe['id'])),
+          child: CafeDetailBody(cafe: cafe),
+        ),
       ),
     );
   }
@@ -140,10 +172,6 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
 
   @override
   Widget build(BuildContext context) {
-    if (imagePaths.isEmpty || _pageController == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -153,44 +181,49 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
             SizedBox(
               height: 350,
               width: 350,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: imagePaths.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                  print('Total number of images: ${imagePaths.length}');
-                  print('Current index updated: $_currentIndex');
-                },
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FullSizeImageScreen(
-                            imageUrl: imagePaths[index],
+              child: imagePaths.isEmpty
+                  ? Center(
+                      child: Icon(Icons.image,
+                          size: 100,
+                          color: Colors
+                              .grey), // Hiển thị biểu tượng nếu không có ảnh
+                    )
+                  : PageView.builder(
+                      controller: _pageController,
+                      itemCount: imagePaths.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FullSizeImageScreen(
+                                  imageUrl: imagePaths[index],
+                                ),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: Image.file(
+                                File(imagePaths[index]),
+                                fit: BoxFit.cover,
+                                filterQuality: FilterQuality.high,
+                                color: Colors.black.withOpacity(0.1),
+                                colorBlendMode: BlendMode.darken,
+                              ),
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: Image.file(
-                          File(imagePaths[index]),
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.high,
-                          color: Colors.black.withOpacity(0.1),
-                          colorBlendMode: BlendMode.darken,
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -363,7 +396,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                   } else {
                     return Column(
                       children: [
-                        const Text('No comments yet!'),
+                        const Text('No comments yet'),
                         const SizedBox(height: 8),
                         if (_isAddingComment)
                           AddCommentForm(

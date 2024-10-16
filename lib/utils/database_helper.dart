@@ -315,4 +315,14 @@ class DatabaseHelper {
 
     return result;
   }
+
+  Future<void> updateCafeImage(int cafeId, String imagePath) async {
+    final db = await database;
+    await db?.update(
+      'cafes',
+      {'imagePath': imagePath},
+      where: 'id = ?',
+      whereArgs: [cafeId],
+    );
+  }
 }
