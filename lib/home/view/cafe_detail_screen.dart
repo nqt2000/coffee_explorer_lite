@@ -18,102 +18,103 @@ class CafeDetailScreen extends StatelessWidget {
 
   Future<void> _pickImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
-    if (image != null) {
-      await DatabaseHelper.instance.updateCafeImage(cafe['id'], image.path);
+      if (image != null) {
+        await DatabaseHelper.instance.updateCafeImage(cafe['id'], image.path);
 
-      cafe['imagePath'] = image.path;
+        cafe['imagePath'] = image.path;
 
-      (context as Element).markNeedsBuild();
+        (context as Element).markNeedsBuild();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No image selected')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting image: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      // onPopInvokedWithResult: (shouldPop) async {
-      //   if (shouldPop) {
-      //     Navigator.pop(context, cafe);
-      //   }
-      // },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            children: [
-              GestureDetector(
-                onTap: () => _pickImage(context),
-                child: cafe['imagePath'] != null && cafe['imagePath'].isNotEmpty
-                    ? Container(
-                        width: 40,
-                        height: 40,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8.0),
-                          color: Colors.grey[200],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final image = Image.file(File(cafe['imagePath']));
-
-                              return FutureBuilder<ImageInfo>(
-                                future: _getImageInfo(image),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData) {
-                                    final imageInfo = snapshot.data!;
-                                    final aspectRatio = imageInfo.image.width /
-                                        imageInfo.image.height;
-                                    final fit = aspectRatio > 1
-                                        ? BoxFit.fitWidth
-                                        : BoxFit.fitHeight;
-
-                                    return Image.file(
-                                      File(cafe['imagePath']),
-                                      fit: fit,
-                                    );
-                                  } else if (snapshot.hasError ||
-                                      !snapshot.hasData) {
-                                    return Icon(Icons.image,
-                                        color: Colors.grey,
-                                        size:
-                                            30); // Hiển thị biểu tượng ảnh nếu có lỗi hoặc không có dữ liệu
-                                  } else {
-                                    return Icon(Icons.image,
-                                        color: Colors.grey,
-                                        size:
-                                            30); // Không chờ đợi, luôn hiển thị biểu tượng ảnh ngay lập tức
-                                  }
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    : const Icon(
-                        Icons.image,
-                        color: Colors.grey,
-                        size: 40,
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => _pickImage(context),
+              child: cafe['imagePath'] != null && cafe['imagePath'].isNotEmpty && File(cafe['imagePath']).existsSync()
+                  ? Container(
+                      width: 40,
+                      height: 40,
+                      margin: const EdgeInsets.only(right: 8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.white,
                       ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final image = Image.file(File(cafe['imagePath']));
+
+                            return FutureBuilder<ImageInfo>(
+                              future: _getImageInfo(image),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.done &&
+                                    snapshot.hasData) {
+                                  final imageInfo = snapshot.data!;
+                                  final aspectRatio = imageInfo.image.width /
+                                      imageInfo.image.height;
+                                  final fit = aspectRatio > 1
+                                      ? BoxFit.fitWidth
+                                      : BoxFit.fitHeight;
+
+                                  return Image.file(
+                                    File(cafe['imagePath']),
+                                    fit: fit,
+                                  );
+                                } else if (snapshot.hasError ||
+                                    !snapshot.hasData) {
+                                  return Icon(Icons.error,
+                                      color: Colors.white,
+                                      size: 30);
+                                } else {
+                                  return Icon(Icons.image,
+                                      color: Colors.white,
+                                      size: 30);
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                  : const Icon(
+                      Icons.image,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+            ),
+            Expanded(
+              child: Text(
+                cafe['name'],
+                style: const TextStyle(fontSize: 18),
+                overflow: TextOverflow.ellipsis,
               ),
-              Expanded(
-                child: Text(
-                  cafe['name'],
-                  style: const TextStyle(fontSize: 18),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        body: BlocProvider(
-          create: (context) => CommentBloc(DatabaseHelper.instance)
-            ..add(FetchComments(cafe['id'])),
-          child: CafeDetailBody(cafe: cafe),
-        ),
+      ),
+      body: BlocProvider(
+        create: (context) => CommentBloc(DatabaseHelper.instance)
+          ..add(FetchComments(cafe['id'])),
+        child: CafeDetailBody(cafe: cafe),
       ),
     );
   }
@@ -186,7 +187,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                       child: Icon(Icons.image,
                           size: 100,
                           color: Colors
-                              .grey), // Hiển thị biểu tượng nếu không có ảnh
+                              .grey),
                     )
                   : PageView.builder(
                       controller: _pageController,
@@ -197,13 +198,14 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                         });
                       },
                       itemBuilder: (context, index) {
+                        final imagePath = imagePaths[index];
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => FullSizeImageScreen(
-                                  imageUrl: imagePaths[index],
+                                  imageUrl: imagePath,
                                 ),
                               ),
                             );
@@ -217,7 +219,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 fit: BoxFit.cover,
                                 filterQuality: FilterQuality.high,
                                 color: Colors.black.withOpacity(0.1),
-                                colorBlendMode: BlendMode.darken,
+                                colorBlendMode: BlendMode.lighten,
                               ),
                             ),
                           ),
