@@ -11,22 +11,31 @@ import 'full_size_image_screen.dart';
 import '../../utils/database_helper.dart';
 import '../../utils/session_manager.dart';
 
-class CafeDetailScreen extends StatelessWidget {
+class CafeDetailScreen extends StatefulWidget {
   final Map<String, dynamic> cafe;
 
-  const CafeDetailScreen({super.key, required this.cafe});
+  const CafeDetailScreen({Key? key, required this.cafe}) : super(key: key);
 
-  Future<void> _pickImage(BuildContext context) async {
+  @override
+  _CafeDetailScreenState createState() => _CafeDetailScreenState();
+}
+
+class _CafeDetailScreenState extends State<CafeDetailScreen>{
+  Future<void>  _pickImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     try {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        await DatabaseHelper.instance.updateCafeImage(cafe['id'], image.path);
+        await DatabaseHelper.instance.updateCafeImage(widget.cafe['id'], image.path);
 
-        cafe['imagePath'] = image.path;
+        // cafe['imagePath'] = image.path;
+        setState(() {
+          widget.cafe['imagePath'] = image.path;
+        });
 
-        (context as Element).markNeedsBuild();
+        // (context as Element).markNeedsBuild();
+        Navigator.pop(context, widget.cafe['imagePath']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No image selected')),
@@ -47,7 +56,7 @@ class CafeDetailScreen extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () => _pickImage(context),
-              child: cafe['imagePath'] != null && cafe['imagePath'].isNotEmpty && File(cafe['imagePath']).existsSync()
+              child: widget.cafe['imagePath'] != null && widget.cafe['imagePath'].isNotEmpty && File(widget.cafe['imagePath']).existsSync()
                   ? Container(
                       width: 40,
                       height: 40,
@@ -60,7 +69,7 @@ class CafeDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8.0),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final image = Image.file(File(cafe['imagePath']));
+                            final image = Image.file(File(widget.cafe['imagePath']));
 
                             return FutureBuilder<ImageInfo>(
                               future: _getImageInfo(image),
@@ -76,7 +85,7 @@ class CafeDetailScreen extends StatelessWidget {
                                       : BoxFit.fitHeight;
 
                                   return Image.file(
-                                    File(cafe['imagePath']),
+                                    File(widget.cafe['imagePath']),
                                     fit: fit,
                                   );
                                 } else if (snapshot.hasError ||
@@ -103,7 +112,7 @@ class CafeDetailScreen extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                cafe['name'],
+                widget.cafe['name'],
                 style: const TextStyle(fontSize: 18),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -113,8 +122,8 @@ class CafeDetailScreen extends StatelessWidget {
       ),
       body: BlocProvider(
         create: (context) => CommentBloc(DatabaseHelper.instance)
-          ..add(FetchComments(cafe['id'])),
-        child: CafeDetailBody(cafe: cafe),
+          ..add(FetchComments(widget.cafe['id'])),
+        child: CafeDetailBody(cafe: widget.cafe),
       ),
     );
   }

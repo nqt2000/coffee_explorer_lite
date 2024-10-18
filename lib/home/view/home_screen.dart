@@ -208,14 +208,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                onTap: () {
-                                  Navigator.push(
+                                onTap: () async {
+                                //   Navigator.push(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //       builder: (context) =>
+                                //           CafeDetailScreen(cafe: cafe),
+                                //     ),
+                                //   );
+                                // },
+                                  final updatedImagePath = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          CafeDetailScreen(cafe: cafe),
+                                      builder: (context) => CafeDetailScreen(cafe: cafe),
                                     ),
                                   );
+
+                                  if (updatedImagePath != null) {
+                                    setState(() {
+                                      cafe['imagePath'] = updatedImagePath;
+                                    });
+                                  }
                                 },
                               ),
                             ),
