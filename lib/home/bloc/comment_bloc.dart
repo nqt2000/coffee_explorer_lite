@@ -9,7 +9,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
 
   CommentBloc(this._dbHelper) : super(CommentInitial()) {
     on<AddComment>(_onAddComment);
-    on<UpdateComment>(_onUpdateComment);
+    // on<UpdateComment>(_onUpdateComment);
     on<HideComment>(_onHideComment);
     on<FetchComments>(_onFetchComments);
   }
@@ -42,22 +42,22 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       emit(CommentError('Failed to add comment: $e'));
     }
   }
-
-  Future<void> _onUpdateComment(UpdateComment event, Emitter<CommentState> emit) async {
-    try {
-      emit(CommentLoading());
-
-      int? userId = await _getUserId();
-      if (userId != null) {
-        await _dbHelper.updateComment(event.commentId, event.newText, userId);
-        emit(CommentActionSuccess());
-      } else {
-        emit(CommentError('User not logged in.'));
-      }
-    } catch (e) {
-      emit(CommentError('Failed to update comment: $e'));
-    }
-  }
+  //
+  // Future<void> _onUpdateComment(UpdateComment event, Emitter<CommentState> emit) async {
+  //   try {
+  //     emit(CommentLoading());
+  //
+  //     int? userId = await _getUserId();
+  //     if (userId != null) {
+  //       await _dbHelper.updateComment(event.commentId, event.newText, userId);
+  //       emit(CommentActionSuccess());
+  //     } else {
+  //       emit(CommentError('User not logged in.'));
+  //     }
+  //   } catch (e) {
+  //     emit(CommentError('Failed to update comment: $e'));
+  //   }
+  // }
 
   Future<void> _onHideComment(HideComment event, Emitter<CommentState> emit) async {
     try {

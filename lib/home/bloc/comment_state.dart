@@ -23,7 +23,7 @@ class CommentError extends CommentState {
 class CommentLoaded extends CommentState {
   final List<Map<String, dynamic>> comments;
 
-  CommentLoaded(this.comments);
+  const CommentLoaded(this.comments);
 
   @override
   List<Object?> get props => [comments];

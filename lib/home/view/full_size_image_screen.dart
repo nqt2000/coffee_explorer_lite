@@ -16,7 +16,6 @@ class FullSizeImageScreen extends StatelessWidget {
       ),
       body: GestureDetector(
         onTap: () {
-          // Quay lại màn hình trước khi nhấn vào ảnh
           Navigator.pop(context);
         },
         child: Center(
@@ -26,7 +25,7 @@ class FullSizeImageScreen extends StatelessWidget {
           ),
         ),
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
     );
   }
 }

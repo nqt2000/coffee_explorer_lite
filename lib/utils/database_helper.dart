@@ -126,16 +126,6 @@ class DatabaseHelper {
     return null;
   }
 
-  Future<bool> isAdmin(String email) async {
-    Database? db = await instance.database;
-    List<Map> result = await db!.query(
-      userTable,
-      where: '$userEmail = ? AND $userIsAdmin = 1',
-      whereArgs: [email],
-    );
-    return result.isNotEmpty;
-  }
-
   Future<bool> emailExists(String email) async {
     final db = await instance.database;
     var result = await db!.query(
@@ -148,15 +138,11 @@ class DatabaseHelper {
 
   Future<int> insertCafe(Map<String, dynamic> row) async {
     Database? db = await instance.database;
-    if (row[cafeName] == null || row[cafeName]
-        .toString()
-        .isEmpty) {
+    if (row[cafeName] == null || row[cafeName].toString().isEmpty) {
       throw Exception('Cafe name is required!');
     }
 
-    if (row[cafeAddress] == null || row[cafeAddress]
-        .toString()
-        .isEmpty) {
+    if (row[cafeAddress] == null || row[cafeAddress].toString().isEmpty) {
       throw Exception('Cafe address is required!');
     }
     return await db!.insert(cafeTable, row);
@@ -233,54 +219,54 @@ class DatabaseHelper {
     });
   }
 
-  Future<bool> canEditOrDeleteComment(int cid, int uid) async {
-    Database? db = await instance.database;
-    List<Map<String, dynamic>> result = await db!.query(
-      commentTable,
-      where: '$commentId = ? AND $idUser = ?',
-      whereArgs: [cid, uid],
-    );
-
-    if (result.isNotEmpty) {
-      return true;
-    }
-
-    List<Map<String, dynamic>> adminCheck = await db.query(
-      userTable,
-      where: '$userId = ? AND $userIsAdmin = 1',
-      whereArgs: [uid],
-    );
-
-    return adminCheck.isNotEmpty;
-  }
-
-  Future<int> updateComment(int cid, String newText, int uid) async {
-    Database? db = await instance.database;
-
-    bool canEdit = await canEditOrDeleteComment(cid, uid);
-    if (!canEdit) {
-      throw Exception('You do not have permission to edit this comment.');
-    }
-
-    return await db!.update(
-      commentTable,
-      {commentUserText: newText},
-      where: 'id = ?',
-      whereArgs: [cid],
-    );
-  }
+  // Future<bool> canEditOrDeleteComment(int cid, int uid) async {
+  //   Database? db = await instance.database;
+  //   List<Map<String, dynamic>> result = await db!.query(
+  //     commentTable,
+  //     where: '$commentId = ? AND $idUser = ?',
+  //     whereArgs: [cid, uid],
+  //   );
+  //
+  //   if (result.isNotEmpty) {
+  //     return true;
+  //   }
+  //
+  //   List<Map<String, dynamic>> adminCheck = await db.query(
+  //     userTable,
+  //     where: '$userId = ? AND $userIsAdmin = 1',
+  //     whereArgs: [uid],
+  //   );
+  //
+  //   return adminCheck.isNotEmpty;
+  // }
+  //
+  // Future<int> updateComment(int cid, String newText, int uid) async {
+  //   Database? db = await instance.database;
+  //
+  //   bool canEdit = await canEditOrDeleteComment(cid, uid);
+  //   if (!canEdit) {
+  //     throw Exception('You do not have permission to edit this comment.');
+  //   }
+  //
+  //   return await db!.update(
+  //     commentTable,
+  //     {commentUserText: newText},
+  //     where: 'id = ?',
+  //     whereArgs: [cid],
+  //   );
+  // }
 
   Future<int> hideComment(int cid, int uid) async {
     Database? db = await instance.database;
 
     List<Map<String, dynamic>> result = await db!.query(
       userTable,
-      where: '$userId = ? AND $userIsAdmin = 1',
+      where: '$userId = ?',
       whereArgs: [uid],
     );
 
     if (result.isEmpty) {
-      throw Exception('Only admins can hide comments.');
+      throw Exception('You can only delete your own comments!');
     }
 
     return await db.update(
@@ -306,11 +292,11 @@ class DatabaseHelper {
     final db = await database;
 
     final result = await db!.rawQuery('''
-    SELECT c.$commentUserText, u.$userName AS userName, c.$commentTimestamp
+    SELECT c.$commentUserText, u.$userName AS userName, c.$commentTimestamp, c.$idUser AS userId, c.$commentId AS commentId, c.$commentIsHidden
     FROM $commentTable c
     JOIN $userTable u ON c.$idUser = u.$userId
-    WHERE c.$idCafe = ? AND c.$commentIsHidden = 0
-    ORDER BY $commentTimestamp DESC
+    WHERE c.$idCafe = ?
+    ORDER BY c.$commentTimestamp DESC
   ''', [cid]);
 
     return result;

@@ -20,21 +20,20 @@ class CafeDetailScreen extends StatefulWidget {
   _CafeDetailScreenState createState() => _CafeDetailScreenState();
 }
 
-class _CafeDetailScreenState extends State<CafeDetailScreen>{
-  Future<void>  _pickImage(BuildContext context) async {
+class _CafeDetailScreenState extends State<CafeDetailScreen> {
+  Future<void> _pickImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     try {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        await DatabaseHelper.instance.updateCafeImage(widget.cafe['id'], image.path);
+        await DatabaseHelper.instance
+            .updateCafeImage(widget.cafe['id'], image.path);
 
-        // cafe['imagePath'] = image.path;
         setState(() {
           widget.cafe['imagePath'] = image.path;
         });
 
-        // (context as Element).markNeedsBuild();
         Navigator.pop(context, widget.cafe['imagePath']);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +55,9 @@ class _CafeDetailScreenState extends State<CafeDetailScreen>{
           children: [
             GestureDetector(
               onTap: () => _pickImage(context),
-              child: widget.cafe['imagePath'] != null && widget.cafe['imagePath'].isNotEmpty && File(widget.cafe['imagePath']).existsSync()
+              child: widget.cafe['imagePath'] != null &&
+                      widget.cafe['imagePath'].isNotEmpty &&
+                      File(widget.cafe['imagePath']).existsSync()
                   ? Container(
                       width: 40,
                       height: 40,
@@ -69,7 +70,8 @@ class _CafeDetailScreenState extends State<CafeDetailScreen>{
                         borderRadius: BorderRadius.circular(8.0),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final image = Image.file(File(widget.cafe['imagePath']));
+                            final image =
+                                Image.file(File(widget.cafe['imagePath']));
 
                             return FutureBuilder<ImageInfo>(
                               future: _getImageInfo(image),
@@ -91,12 +93,10 @@ class _CafeDetailScreenState extends State<CafeDetailScreen>{
                                 } else if (snapshot.hasError ||
                                     !snapshot.hasData) {
                                   return Icon(Icons.error,
-                                      color: Colors.white,
-                                      size: 30);
+                                      color: Colors.white, size: 30);
                                 } else {
                                   return Icon(Icons.image,
-                                      color: Colors.white,
-                                      size: 30);
+                                      color: Colors.white, size: 30);
                                 }
                               },
                             );
@@ -193,10 +193,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
               width: 350,
               child: imagePaths.isEmpty
                   ? Center(
-                      child: Icon(Icons.image,
-                          size: 100,
-                          color: Colors
-                              .grey),
+                      child: Icon(Icons.image, size: 100, color: Colors.grey),
                     )
                   : PageView.builder(
                       controller: _pageController,
@@ -282,6 +279,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if(widget.cafe['description'] != null && widget.cafe['description'] != '')
                 const Icon(Icons.description, size: 20, color: Colors.grey),
                 const SizedBox(width: 8),
                 Expanded(
@@ -326,7 +324,10 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             final comment = state.comments[index];
                             final userName = comment['userName'] ?? 'Anonymous';
                             final timestamp = comment['timestamp'];
+                            final idUser = comment['userId'];
                             final isCommentHidden = comment['isHidden'] == 1;
+                            final idComment = comment['commentId'];
+                            final textComment = comment['commentText'];
 
                             final formattedTime = timestamp != null
                                 ? DateFormat('dd/MM/yyyy')
@@ -336,38 +337,61 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             return Visibility(
                               visible: !isCommentHidden ||
                                   isAdmin ||
-                                  comment['userId'] == userId,
+                                  idUser == userId,
                               child: Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    if (isAdmin || !isCommentHidden)
+                                      Text(
+                                        '$userName - $formattedTime',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          '$userName - $formattedTime',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontStyle: FontStyle.italic,
-                                            color: Colors.grey,
+                                        if (isCommentHidden && isAdmin)
+                                          Opacity(
+                                            opacity: 0.5,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.all(12.0),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                color: Colors.grey[200],
+                                              ),
+                                              child: Text(textComment),
+                                            ),
+                                          )
+                                        else if (!isCommentHidden)
+                                          Container(
+                                            padding: const EdgeInsets.all(12.0),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              color: Colors.grey[200],
+                                            ),
+                                            child: Text(textComment),
                                           ),
-                                        ),
-                                        if (isAdmin ||
-                                            comment['userId'] == userId)
+                                        if ((idUser == userId || isAdmin) &&
+                                            !isCommentHidden)
                                           IconButton(
                                             icon: const Icon(Icons.delete,
                                                 color: Colors.red),
                                             onPressed: () {
-                                              if (comment['commentId'] !=
-                                                  null) {
+                                              if (idComment != null) {
                                                 BlocProvider.of<CommentBloc>(
                                                         context)
                                                     .add(
-                                                  HideComment(
-                                                      comment['commentId']),
+                                                  HideComment(idComment),
                                                 );
                                               } else {
                                                 print('Comment ID is null');
@@ -375,15 +399,6 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             },
                                           ),
                                       ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.all(12.0),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                        color: Colors.grey[200],
-                                      ),
-                                      child: Text(comment['commentText']),
                                     ),
                                   ],
                                 ),
