@@ -219,43 +219,6 @@ class DatabaseHelper {
     });
   }
 
-  // Future<bool> canEditOrDeleteComment(int cid, int uid) async {
-  //   Database? db = await instance.database;
-  //   List<Map<String, dynamic>> result = await db!.query(
-  //     commentTable,
-  //     where: '$commentId = ? AND $idUser = ?',
-  //     whereArgs: [cid, uid],
-  //   );
-  //
-  //   if (result.isNotEmpty) {
-  //     return true;
-  //   }
-  //
-  //   List<Map<String, dynamic>> adminCheck = await db.query(
-  //     userTable,
-  //     where: '$userId = ? AND $userIsAdmin = 1',
-  //     whereArgs: [uid],
-  //   );
-  //
-  //   return adminCheck.isNotEmpty;
-  // }
-  //
-  // Future<int> updateComment(int cid, String newText, int uid) async {
-  //   Database? db = await instance.database;
-  //
-  //   bool canEdit = await canEditOrDeleteComment(cid, uid);
-  //   if (!canEdit) {
-  //     throw Exception('You do not have permission to edit this comment.');
-  //   }
-  //
-  //   return await db!.update(
-  //     commentTable,
-  //     {commentUserText: newText},
-  //     where: 'id = ?',
-  //     whereArgs: [cid],
-  //   );
-  // }
-
   Future<int> hideComment(int cid, int uid) async {
     Database? db = await instance.database;
 
@@ -302,13 +265,28 @@ class DatabaseHelper {
     return result;
   }
 
-  Future<void> updateCafeImage(int cafeId, String imagePath) async {
+  Future<void> updateCafeImage(int cid, String imagePath) async {
     final db = await database;
     await db?.update(
-      'cafes',
-      {'imagePath': imagePath},
-      where: 'id = ?',
-      whereArgs: [cafeId],
+      cafeTable,
+      {cafeImagePath: imagePath},
+      where: '$cafeId = ?',
+      whereArgs: [cid],
+    );
+  }
+
+  Future<int> updateCafeDetails(int cid, String name, String address, String description) async {
+    final db = await instance.database;
+
+    return db!.update(
+      cafeTable,
+      {
+        cafeName: name,
+        cafeAddress: address,
+        cafeDescription: description,
+      },
+      where: '$cafeId = ?',
+      whereArgs: [cid],
     );
   }
 }

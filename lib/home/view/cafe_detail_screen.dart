@@ -14,6 +14,7 @@ import '../../utils/session_manager.dart';
 class CafeDetailScreen extends StatefulWidget {
   final Map<String, dynamic> cafe;
 
+
   const CafeDetailScreen({Key? key, required this.cafe}) : super(key: key);
 
   @override
@@ -21,7 +22,16 @@ class CafeDetailScreen extends StatefulWidget {
 }
 
 class _CafeDetailScreenState extends State<CafeDetailScreen> {
+  bool isAdmin = false;
+
   Future<void> _pickImage(BuildContext context) async {
+    if (!isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You do not have permission to change the image.')),
+      );
+      return;
+    }
+
     final ImagePicker picker = ImagePicker();
     try {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -119,20 +129,130 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+               _showEditCafeDialog(context);
+            },
+          ),
+        ],
       ),
       body: BlocProvider(
         create: (context) => CommentBloc(DatabaseHelper.instance)
           ..add(FetchComments(widget.cafe['id'])),
-        child: CafeDetailBody(cafe: widget.cafe),
+        child: CafeDetailBody(
+          cafe: widget.cafe,
+          onAdminStatusChanged: (isAdminStatus) {
+            setState(() {
+              isAdmin = isAdminStatus;
+            });
+          },
+        ),
       ),
     );
   }
+
+  Future<void> _updateCafeDetails(String newName, String newAddress, String newDescription) async {
+    if (newName.isNotEmpty && newAddress.isNotEmpty) {
+      await DatabaseHelper.instance.updateCafeDetails(
+        widget.cafe['id'],
+        newName,
+        newAddress,
+        newDescription,
+      );
+
+      final updatedCafe = Map<String, dynamic>.from(widget.cafe);
+
+      updatedCafe['name'] = newName;
+      updatedCafe['address'] = newAddress;
+      updatedCafe['description'] = newDescription;
+
+      setState(() {
+        widget.cafe['name'] = updatedCafe['name'];
+        widget.cafe['address'] = updatedCafe['address'];
+        widget.cafe['description'] = updatedCafe['description'];
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name and Address cannot be empty')),
+      );
+    }
+  }
+
+  void _showEditCafeDialog(BuildContext context) {
+    if (!isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You do not have permission to make this change.')),
+      );
+      return;
+    }
+      final TextEditingController nameController = TextEditingController(
+          text: widget.cafe['name']);
+      final TextEditingController addressController = TextEditingController(
+          text: widget.cafe['address']);
+      final TextEditingController descriptionController = TextEditingController(
+          text: widget.cafe['description'] ?? '');
+
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Edit Cafe Details'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Cafe Name'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: addressController,
+                  decoration: const InputDecoration(labelText: 'Address'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await _updateCafeDetails(
+                    nameController.text,
+                    addressController.text,
+                    descriptionController.text,
+                  );
+                  Navigator.pop(context);
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      );
+    }
 }
+
+
 
 class CafeDetailBody extends StatefulWidget {
   final Map<String, dynamic> cafe;
+  final ValueChanged<bool> onAdminStatusChanged;
 
-  const CafeDetailBody({super.key, required this.cafe});
+  const CafeDetailBody(
+      {super.key, required this.cafe, required this.onAdminStatusChanged});
 
   @override
   _CafeDetailBodyState createState() => _CafeDetailBodyState();
@@ -177,6 +297,8 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
       userId = userInfo?['id'] ?? 0;
       userFullName = userInfo?['name'] ?? 'User';
       isAdmin = (userInfo?['isAdmin'] ?? 0) == 1;
+
+      widget.onAdminStatusChanged(isAdmin);
     });
   }
 
@@ -279,8 +401,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if(widget.cafe['description'] != null && widget.cafe['description'] != '')
-                const Icon(Icons.description, size: 20, color: Colors.grey),
+                if (widget.cafe['description'] != null &&
+                    widget.cafe['description'] != '')
+                  const Icon(Icons.description, size: 20, color: Colors.grey),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
