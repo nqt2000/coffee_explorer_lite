@@ -49,3 +49,8 @@ class DeleteCafe extends HomeEvent {
 }
 
 class ResetImageState extends HomeEvent {}
+
+class RefreshCafes extends HomeEvent {
+  @override
+  List<Object> get props => [];
+}

@@ -14,7 +14,6 @@ import '../../utils/session_manager.dart';
 class CafeDetailScreen extends StatefulWidget {
   final Map<String, dynamic> cafe;
 
-
   const CafeDetailScreen({Key? key, required this.cafe}) : super(key: key);
 
   @override
@@ -24,10 +23,19 @@ class CafeDetailScreen extends StatefulWidget {
 class _CafeDetailScreenState extends State<CafeDetailScreen> {
   bool isAdmin = false;
 
+  late Map<String, dynamic> cafe;
+
+  @override
+  void initState() {
+    super.initState();
+    cafe = Map<String, dynamic>.from(widget.cafe);
+  }
+
   Future<void> _pickImage(BuildContext context) async {
     if (!isAdmin) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You do not have permission to change the image.')),
+        const SnackBar(
+            content: Text('You do not have permission to change the image.')),
       );
       return;
     }
@@ -65,9 +73,9 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
           children: [
             GestureDetector(
               onTap: () => _pickImage(context),
-              child: widget.cafe['imagePath'] != null &&
-                      widget.cafe['imagePath'].isNotEmpty &&
-                      File(widget.cafe['imagePath']).existsSync()
+              child: cafe['imagePath'] != null &&
+                      cafe['imagePath'].isNotEmpty &&
+                      File(cafe['imagePath']).existsSync()
                   ? Container(
                       width: 40,
                       height: 40,
@@ -80,8 +88,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
                         borderRadius: BorderRadius.circular(8.0),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final image =
-                                Image.file(File(widget.cafe['imagePath']));
+                            final image = Image.file(File(cafe['imagePath']));
 
                             return FutureBuilder<ImageInfo>(
                               future: _getImageInfo(image),
@@ -97,7 +104,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
                                       : BoxFit.fitHeight;
 
                                   return Image.file(
-                                    File(widget.cafe['imagePath']),
+                                    File(cafe['imagePath']),
                                     fit: fit,
                                   );
                                 } else if (snapshot.hasError ||
@@ -122,7 +129,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
             ),
             Expanded(
               child: Text(
-                widget.cafe['name'],
+                cafe['name'],
                 style: const TextStyle(fontSize: 18),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -133,16 +140,16 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-               _showEditCafeDialog(context);
+              _showEditCafeDialog(context);
             },
           ),
         ],
       ),
       body: BlocProvider(
         create: (context) => CommentBloc(DatabaseHelper.instance)
-          ..add(FetchComments(widget.cafe['id'])),
+          ..add(FetchComments(cafe['id'])),
         child: CafeDetailBody(
-          cafe: widget.cafe,
+          cafe: cafe,
           onAdminStatusChanged: (isAdminStatus) {
             setState(() {
               isAdmin = isAdminStatus;
@@ -153,26 +160,25 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     );
   }
 
-  Future<void> _updateCafeDetails(String newName, String newAddress, String newDescription) async {
+  Future<void> _updateCafeDetails(
+      String newName, String newAddress, String newDescription) async {
     if (newName.isNotEmpty && newAddress.isNotEmpty) {
       await DatabaseHelper.instance.updateCafeDetails(
-        widget.cafe['id'],
+        cafe['id'],
         newName,
         newAddress,
         newDescription,
       );
 
-      final updatedCafe = Map<String, dynamic>.from(widget.cafe);
+      final updatedCafe =
+          await DatabaseHelper.instance.queryCafeById(cafe['id']);
 
-      updatedCafe['name'] = newName;
-      updatedCafe['address'] = newAddress;
-      updatedCafe['description'] = newDescription;
-
-      setState(() {
-        widget.cafe['name'] = updatedCafe['name'];
-        widget.cafe['address'] = updatedCafe['address'];
-        widget.cafe['description'] = updatedCafe['description'];
-      });
+      if (updatedCafe != null) {
+        setState(() {
+          cafe = Map<String, dynamic>.from(updatedCafe);
+          print("Updated cafe: $cafe");
+        });
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Name and Address cannot be empty')),
@@ -183,69 +189,67 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
   void _showEditCafeDialog(BuildContext context) {
     if (!isAdmin) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You do not have permission to make this change.')),
+        const SnackBar(
+            content: Text('You do not have permission to make this change.')),
       );
       return;
     }
-      final TextEditingController nameController = TextEditingController(
-          text: widget.cafe['name']);
-      final TextEditingController addressController = TextEditingController(
-          text: widget.cafe['address']);
-      final TextEditingController descriptionController = TextEditingController(
-          text: widget.cafe['description'] ?? '');
+    final TextEditingController nameController =
+        TextEditingController(text: cafe['name']);
+    final TextEditingController addressController =
+        TextEditingController(text: cafe['address']);
+    final TextEditingController descriptionController =
+        TextEditingController(text: cafe['description'] ?? '');
 
-
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Edit Cafe Details'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Cafe Name'),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: addressController,
-                  decoration: const InputDecoration(labelText: 'Address'),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 3,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel'),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Cafe Details'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Cafe Name'),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  await _updateCafeDetails(
-                    nameController.text,
-                    addressController.text,
-                    descriptionController.text,
-                  );
-                  Navigator.pop(context);
-                },
-                child: const Text('Save'),
+              const SizedBox(height: 8),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(labelText: 'Address'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 3,
               ),
             ],
-          );
-        },
-      );
-    }
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _updateCafeDetails(
+                  nameController.text,
+                  addressController.text,
+                  descriptionController.text,
+                );
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
-
-
 
 class CafeDetailBody extends StatefulWidget {
   final Map<String, dynamic> cafe;

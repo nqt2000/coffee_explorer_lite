@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
+import '../../cafe_detail/bloc/cafe_detail_state.dart';
 import '../../utils/database_helper.dart';
 import 'home_event.dart';
 import 'home_state.dart';
-import 'cafe_detail_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   List<Map<String, dynamic>> _cachedCafes = [];
@@ -20,6 +20,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<AddImagesToCafe>(_onAddImagesToCafe);
     on<DeleteCafe>(_onDeleteCafe);
     on<ResetImageState>(_onResetImageState);
+    on<RefreshCafes>(_onRefreshCafes);
   }
 
   Future<void> _onFetchCafes(FetchCafes event, Emitter<HomeState> emit) async {
@@ -90,12 +91,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onFetchCafeDetail(
       FetchCafeDetail event, Emitter<HomeState> emit) async {
-    emit(CafeDetailLoading());
+    emit(CafeDetailLoading() as HomeState);
     try {
       final cafe = await DatabaseHelper.instance.queryCafeById(event.cafeId);
-      emit(CafeDetailLoaded(cafe!));
+      emit(CafeDetailLoaded(cafe!) as HomeState);
     } catch (e) {
-      emit(CafeDetailError('Failed to load cafe details: ${e.toString()}'));
+      emit(CafeDetailError('Failed to load cafe details: ${e.toString()}') as HomeState);
     }
   }
 
@@ -121,5 +122,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _onResetImageState(ResetImageState event, Emitter<HomeState> emit) {
     emit(HomeLoaded(_cachedCafes, _cachedCafes));
+  }
+
+  Future<void> _onRefreshCafes(RefreshCafes event, Emitter<HomeState> emit) async {
+    try {
+      final cafes = await DatabaseHelper.instance.queryAllCafes();
+      emit(HomeLoaded(cafes, cafes));
+    } catch (e) {
+      emit(HomeError("Error refreshing cafes: ${e.toString()}"));
+    }
   }
 }

@@ -6,7 +6,7 @@ import '../../authentication/view/login_screen.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
-import 'cafe_detail_screen.dart';
+import '../../cafe_detail/view/cafe_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key, required userFullName, required bool isAdmin})
@@ -209,14 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 ),
                                 onTap: () async {
-                                //   Navigator.push(
-                                //     context,
-                                //     MaterialPageRoute(
-                                //       builder: (context) =>
-                                //           CafeDetailScreen(cafe: cafe),
-                                //     ),
-                                //   );
-                                // },
                                   final updatedImagePath = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
