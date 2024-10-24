@@ -314,50 +314,52 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: 350,
-              width: 350,
-              child: imagePaths.isEmpty
-                  ? Center(
-                      child: Icon(Icons.image, size: 100, color: Colors.grey),
-                    )
-                  : PageView.builder(
-                      controller: _pageController,
-                      itemCount: imagePaths.length,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                      },
-                      itemBuilder: (context, index) {
-                        final imagePath = imagePaths[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FullSizeImageScreen(
-                                  imageUrl: imagePath,
+            Center(
+              child: SizedBox(
+                height: 350,
+                width: 350,
+                child: imagePaths.isEmpty
+                    ? Center(
+                        child: Icon(Icons.image, size: 100, color: Colors.grey),
+                      )
+                    : PageView.builder(
+                        controller: _pageController,
+                        itemCount: imagePaths.length,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentIndex = index;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          final imagePath = imagePaths[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FullSizeImageScreen(
+                                    imageUrl: imagePath,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: Image.file(
+                                  File(imagePaths[index]),
+                                  fit: BoxFit.cover,
+                                  filterQuality: FilterQuality.high,
+                                  color: Colors.black.withOpacity(0.1),
+                                  colorBlendMode: BlendMode.lighten,
                                 ),
                               ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              child: Image.file(
-                                File(imagePaths[index]),
-                                fit: BoxFit.cover,
-                                filterQuality: FilterQuality.high,
-                                color: Colors.black.withOpacity(0.1),
-                                colorBlendMode: BlendMode.lighten,
-                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
+              ),
             ),
             const SizedBox(height: 8),
             Row(
