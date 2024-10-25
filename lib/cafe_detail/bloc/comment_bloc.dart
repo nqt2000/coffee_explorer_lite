@@ -26,7 +26,8 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     return (userInfo?['isAdmin'] ?? 0) == 1;
   }
 
-  Future<void> _onAddComment(AddComment event, Emitter<CommentState> emit) async {
+  Future<void> _onAddComment(
+      AddComment event, Emitter<CommentState> emit) async {
     try {
       emit(CommentLoading());
 
@@ -42,24 +43,26 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       emit(CommentError('Failed to add comment: $e'));
     }
   }
-  //
-  // Future<void> _onUpdateComment(UpdateComment event, Emitter<CommentState> emit) async {
-  //   try {
-  //     emit(CommentLoading());
-  //
-  //     int? userId = await _getUserId();
-  //     if (userId != null) {
-  //       await _dbHelper.updateComment(event.commentId, event.newText, userId);
-  //       emit(CommentActionSuccess());
-  //     } else {
-  //       emit(CommentError('User not logged in.'));
-  //     }
-  //   } catch (e) {
-  //     emit(CommentError('Failed to update comment: $e'));
-  //   }
-  // }
 
-  Future<void> _onHideComment(HideComment event, Emitter<CommentState> emit) async {
+  Future<void> _onUpdateComment(
+      UpdateComment event, Emitter<CommentState> emit) async {
+    try {
+      int? userId = await _getUserId();
+      if (userId != null) {
+        await _dbHelper.updateComment(event.commentId, event.newText, userId);
+
+        final comments = await _dbHelper.getCommentsByCafe(event.cafeId);
+        emit(CommentLoaded(comments));
+      } else {
+        emit(CommentError('User not logged in.'));
+      }
+    } catch (e) {
+      emit(CommentError('Failed to update comment: $e'));
+    }
+  }
+
+  Future<void> _onHideComment(
+      HideComment event, Emitter<CommentState> emit) async {
     try {
       emit(CommentLoading());
 
@@ -73,7 +76,8 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
           await _dbHelper.hideComment(event.commentId, userId);
           emit(CommentActionSuccess());
         } else {
-          emit(CommentError('You do not have permission to hide this comment.'));
+          emit(
+              CommentError('You do not have permission to hide this comment.'));
         }
       } else {
         emit(CommentError('User not logged in.'));
@@ -83,12 +87,12 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     }
   }
 
-
-
-  Future<void> _onFetchComments(FetchComments event, Emitter<CommentState> emit) async {
+  Future<void> _onFetchComments(
+      FetchComments event, Emitter<CommentState> emit) async {
     try {
       emit(CommentLoading());
-      List<Map<String, dynamic>> comments = await _dbHelper.getCommentsByCafe(event.cafeId);
+      List<Map<String, dynamic>> comments =
+          await _dbHelper.getCommentsByCafe(event.cafeId);
       emit(CommentLoaded(comments));
     } catch (e) {
       emit(CommentError('Failed to load comments: $e'));

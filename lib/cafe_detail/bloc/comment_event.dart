@@ -20,11 +20,12 @@ class AddComment extends CommentEvent {
 class UpdateComment extends CommentEvent {
   final int commentId;
   final String newText;
+  final int cafeId;
 
-  const UpdateComment(this.commentId, this.newText);
+  const UpdateComment(this.commentId, this.newText, this.cafeId);
 
   @override
-  List<Object> get props => [commentId, newText];
+  List<Object> get props => [commentId, newText, cafeId];
 }
 
 class HideComment extends CommentEvent {

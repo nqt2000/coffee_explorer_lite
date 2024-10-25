@@ -289,4 +289,18 @@ class DatabaseHelper {
       whereArgs: [cid],
     );
   }
+
+  Future<int> updateComment(int cid, String newComment, int uid) async{
+   final db = await instance.database;
+
+   return db!.update(
+     commentTable,
+     {
+       commentId: cid,
+       commentUserText: newComment,
+     },
+     where: '$userId = ?',
+     whereArgs: [uid],
+   );
+  }
 }
