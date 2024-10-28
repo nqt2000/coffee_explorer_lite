@@ -9,7 +9,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
 
   CommentBloc(this._dbHelper) : super(CommentInitial()) {
     on<AddComment>(_onAddComment);
-    // on<UpdateComment>(_onUpdateComment);
+    on<UpdateComment>(_onUpdateComment);
     on<HideComment>(_onHideComment);
     on<FetchComments>(_onFetchComments);
   }
@@ -52,12 +52,12 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
         await _dbHelper.updateComment(event.commentId, event.newText, userId);
 
         final comments = await _dbHelper.getCommentsByCafe(event.cafeId);
-        emit(CommentLoaded(comments));
+        emit(UpdateCommentSuccess());
       } else {
-        emit(CommentError('User not logged in.'));
+        emit(UpdateCommentFailure('User not logged in.'));
       }
     } catch (e) {
-      emit(CommentError('Failed to update comment: $e'));
+      emit(UpdateCommentFailure('Failed to update comment: $e'));
     }
   }
 

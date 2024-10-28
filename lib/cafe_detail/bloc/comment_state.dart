@@ -30,3 +30,11 @@ class CommentLoaded extends CommentState {
 }
 
 class CommentActionSuccess extends CommentState {}
+
+class UpdateCommentSuccess extends CommentState {}
+
+class UpdateCommentFailure extends CommentState {
+  final String error;
+
+  const UpdateCommentFailure(this.error);
+}

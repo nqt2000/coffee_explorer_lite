@@ -445,6 +445,17 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             },
                             userId: userId,
                           ),
+                        if (!_isAddingComment)
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isAddingComment = true;
+                                });
+                              },
+                              child: const Text('Add a comment'),
+                            ),
+                          ),
                         ListView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
@@ -486,20 +497,38 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        if (isCommentHidden && isAdmin)
-                                          Opacity(
-                                            opacity: 0.5,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.all(12.0),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                                color: Colors.grey[200],
+                                        if (isCommentHidden)
+                                          if (isAdmin)
+                                            Opacity(
+                                              opacity: 0.5,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(12.0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
+                                                  color: Colors.grey[200],
+                                                ),
+                                                child: Text(textComment),
                                               ),
-                                              child: Text(textComment),
-                                            ),
-                                          )
+                                            )
+                                          else
+                                            Opacity(
+                                              opacity: 0.5,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(12.0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
+                                                  color: Colors.grey[200],
+                                                ),
+                                                child: Text(
+                                                    'Comment has been removed'),
+                                              ),
+                                            )
                                         else if (!isCommentHidden)
                                           Container(
                                             padding: const EdgeInsets.all(12.0),
@@ -512,21 +541,33 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                           ),
                                         if ((idUser == userId || isAdmin) &&
                                             !isCommentHidden)
-                                          IconButton(
-                                            icon: const Icon(Icons.delete,
-                                                color: Colors.red),
-                                            onPressed: () {
-                                              if (idComment != null) {
-                                                BlocProvider.of<CommentBloc>(
-                                                        context)
-                                                    .add(
-                                                  HideComment(idComment),
-                                                );
-                                              } else {
-                                                print('Comment ID is null');
-                                              }
-                                            },
-                                          ),
+                                          Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                  IconButton(
+                                                    icon: Icon(Icons.edit),
+                                                    onPressed: () {
+                                                      showEditCommentDialog(context, idComment, textComment, widget.cafe['id']);
+                                                    },
+                                                  ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete,
+                                                      color: Colors.red),
+                                                  onPressed: () {
+                                                    if (idComment != null) {
+                                                      BlocProvider.of<
+                                                                  CommentBloc>(
+                                                              context)
+                                                          .add(
+                                                        HideComment(idComment),
+                                                      );
+                                                    } else {
+                                                      print(
+                                                          'Comment ID is null');
+                                                    }
+                                                  },
+                                                ),
+                                              ])
                                       ],
                                     ),
                                   ],
@@ -535,17 +576,6 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             );
                           },
                         ),
-                        if (!_isAddingComment)
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isAddingComment = true;
-                                });
-                              },
-                              child: const Text('Add a comment'),
-                            ),
-                          ),
                       ],
                     );
                   } else {
@@ -591,6 +621,41 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void showEditCommentDialog(BuildContext context, int commentId, String initialContent, int cafeId) {
+    final TextEditingController controller = TextEditingController(text: initialContent);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit comment'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'Nội dung mới'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final updatedContent = controller.text;
+              BlocProvider.of<CommentBloc>(context).add(
+                UpdateComment(
+                  commentId,
+                  updatedContent,
+                  cafeId,
+                ),
+              );
+              Navigator.pop(context);
+            },
+            child: Text('Save'),
+          ),
+        ],
       ),
     );
   }
