@@ -67,97 +67,102 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            GestureDetector(
-              onTap: () => _pickImage(context),
-              child: cafe['imagePath'] != null &&
-                      cafe['imagePath'].isNotEmpty &&
-                      File(cafe['imagePath']).existsSync()
-                  ? Container(
-                      width: 40,
-                      height: 40,
-                      margin: const EdgeInsets.only(right: 8.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        color: Colors.white,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final image = Image.file(File(cafe['imagePath']));
+    return BlocProvider(
+        create: (context) => CommentBloc(DatabaseHelper.instance),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _pickImage(context),
+                  child: cafe['imagePath'] != null &&
+                          cafe['imagePath'].isNotEmpty &&
+                          File(cafe['imagePath']).existsSync()
+                      ? Container(
+                          width: 40,
+                          height: 40,
+                          margin: const EdgeInsets.only(right: 8.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            color: Colors.white,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final image =
+                                    Image.file(File(cafe['imagePath']));
 
-                            return FutureBuilder<ImageInfo>(
-                              future: _getImageInfo(image),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  final imageInfo = snapshot.data!;
-                                  final aspectRatio = imageInfo.image.width /
-                                      imageInfo.image.height;
-                                  final fit = aspectRatio > 1
-                                      ? BoxFit.fitWidth
-                                      : BoxFit.fitHeight;
+                                return FutureBuilder<ImageInfo>(
+                                  future: _getImageInfo(image),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                            ConnectionState.done &&
+                                        snapshot.hasData) {
+                                      final imageInfo = snapshot.data!;
+                                      final aspectRatio =
+                                          imageInfo.image.width /
+                                              imageInfo.image.height;
+                                      final fit = aspectRatio > 1
+                                          ? BoxFit.fitWidth
+                                          : BoxFit.fitHeight;
 
-                                  return Image.file(
-                                    File(cafe['imagePath']),
-                                    fit: fit,
-                                  );
-                                } else if (snapshot.hasError ||
-                                    !snapshot.hasData) {
-                                  return Icon(Icons.error,
-                                      color: Colors.white, size: 30);
-                                } else {
-                                  return Icon(Icons.image,
-                                      color: Colors.white, size: 30);
-                                }
+                                      return Image.file(
+                                        File(cafe['imagePath']),
+                                        fit: fit,
+                                      );
+                                    } else if (snapshot.hasError ||
+                                        !snapshot.hasData) {
+                                      return Icon(Icons.error,
+                                          color: Colors.white, size: 30);
+                                    } else {
+                                      return Icon(Icons.image,
+                                          color: Colors.white, size: 30);
+                                    }
+                                  },
+                                );
                               },
-                            );
-                          },
+                            ),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.image,
+                          color: Colors.white,
+                          size: 40,
                         ),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.image,
-                      color: Colors.white,
-                      size: 40,
-                    ),
+                ),
+                Expanded(
+                  child: Text(
+                    cafe['name'],
+                    style: const TextStyle(fontSize: 18),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Text(
-                cafe['name'],
-                style: const TextStyle(fontSize: 18),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              _showEditCafeDialog(context);
-            },
+            actions: [
+              if (isAdmin)
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    _showEditCafeDialog(context);
+                  },
+                ),
+            ],
           ),
-        ],
-      ),
-      body: BlocProvider(
-        create: (context) => CommentBloc(DatabaseHelper.instance)
-          ..add(FetchComments(cafe['id'])),
-        child: CafeDetailBody(
-          cafe: cafe,
-          onAdminStatusChanged: (isAdminStatus) {
-            setState(() {
-              isAdmin = isAdminStatus;
-            });
-          },
-        ),
-      ),
-    );
+          body: BlocProvider(
+            create: (context) => CommentBloc(DatabaseHelper.instance)
+              ..add(FetchComments(cafe['id'])),
+            child: CafeDetailBody(
+              cafe: cafe,
+              onAdminStatusChanged: (isAdminStatus) {
+                setState(() {
+                  isAdmin = isAdminStatus;
+                });
+              },
+            ),
+          ),
+        ));
   }
 
   Future<void> _updateCafeDetails(
@@ -541,33 +546,43 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                           ),
                                         if ((idUser == userId || isAdmin) &&
                                             !isCommentHidden)
-                                          Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                  IconButton(
-                                                    icon: Icon(Icons.edit),
-                                                    onPressed: () {
-                                                      showEditCommentDialog(context, idComment, textComment, widget.cafe['id']);
-                                                    },
-                                                  ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete,
-                                                      color: Colors.red),
-                                                  onPressed: () {
-                                                    if (idComment != null) {
-                                                      BlocProvider.of<
-                                                                  CommentBloc>(
-                                                              context)
-                                                          .add(
-                                                        HideComment(idComment),
-                                                      );
-                                                    } else {
-                                                      print(
-                                                          'Comment ID is null');
-                                                    }
-                                                  },
-                                                ),
-                                              ])
+                                          BlocProvider(
+                                              create: (context) => CommentBloc(
+                                                  DatabaseHelper.instance),
+                                              child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    IconButton(
+                                                      icon: Icon(Icons.edit),
+                                                      onPressed: () {
+                                                        showEditCommentDialog(
+                                                            context,
+                                                            idComment,
+                                                            textComment,
+                                                            widget.cafe['id']);
+                                                      },
+                                                    ),
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                          Icons.delete,
+                                                          color: Colors.red),
+                                                      onPressed: () {
+                                                        if (idComment != null) {
+                                                          BlocProvider.of<
+                                                                      CommentBloc>(
+                                                                  context)
+                                                              .add(
+                                                            HideComment(
+                                                                idComment),
+                                                          );
+                                                        } else {
+                                                          print(
+                                                              'Comment ID is null');
+                                                        }
+                                                      },
+                                                    ),
+                                                  ]))
                                       ],
                                     ),
                                   ],
@@ -625,37 +640,42 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
     );
   }
 
-  void showEditCommentDialog(BuildContext context, int commentId, String initialContent, int cafeId) {
-    final TextEditingController controller = TextEditingController(text: initialContent);
+  void showEditCommentDialog(
+      BuildContext context, int commentId, String initialContent, int cafeId) {
+    final TextEditingController controller =
+        TextEditingController(text: initialContent);
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit comment'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(labelText: 'Nội dung mới'),
+      builder: (dialogContext) => BlocProvider.value(
+        value: BlocProvider.of<CommentBloc>(context),
+        child: AlertDialog(
+          title: Text('Edit comment'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(labelText: 'Comment'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final updatedContent = controller.text;
+                BlocProvider.of<CommentBloc>(context).add(
+                  UpdateComment(
+                    commentId,
+                    updatedContent,
+                    cafeId,
+                  ),
+                );
+                Navigator.pop(dialogContext);
+              },
+              child: Text('Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final updatedContent = controller.text;
-              BlocProvider.of<CommentBloc>(context).add(
-                UpdateComment(
-                  commentId,
-                  updatedContent,
-                  cafeId,
-                ),
-              );
-              Navigator.pop(context);
-            },
-            child: Text('Save'),
-          ),
-        ],
       ),
     );
   }

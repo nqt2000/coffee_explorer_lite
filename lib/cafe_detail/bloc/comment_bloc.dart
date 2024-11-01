@@ -51,7 +51,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       if (userId != null) {
         await _dbHelper.updateComment(event.commentId, event.newText, userId);
 
-        final comments = await _dbHelper.getCommentsByCafe(event.cafeId);
+        // final comments = await _dbHelper.getCommentsByCafe(event.cafeId);
         emit(UpdateCommentSuccess());
       } else {
         emit(UpdateCommentFailure('User not logged in.'));
