@@ -9,7 +9,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
 
   CommentBloc(this._dbHelper) : super(CommentInitial()) {
     on<AddComment>(_onAddComment);
-    on<UpdateComment>(_onUpdateComment);
+    on<EditComment>(_onUpdateComment);
     on<HideComment>(_onHideComment);
     on<FetchComments>(_onFetchComments);
   }
@@ -45,11 +45,11 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
   }
 
   Future<void> _onUpdateComment(
-      UpdateComment event, Emitter<CommentState> emit) async {
+      EditComment event, Emitter<CommentState> emit) async {
     try {
       int? userId = await _getUserId();
       if (userId != null) {
-        await _dbHelper.updateComment(event.commentId, event.newText, userId);
+        await _dbHelper.updateComment(event.commentId, event.newComment);
 
         // final comments = await _dbHelper.getCommentsByCafe(event.cafeId);
         emit(UpdateCommentSuccess());

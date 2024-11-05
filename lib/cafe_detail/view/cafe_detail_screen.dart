@@ -439,13 +439,11 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                           AddCommentForm(
                             cafeId: widget.cafe['id'],
                             onSubmitSuccess: () {
-                              setState(() {
-                                _isAddingComment = false;
+                              setState(() {_isAddingComment = false;
                               });
                             },
                             onCancel: () {
-                              setState(() {
-                                _isAddingComment = false;
+                              setState(() {_isAddingComment = false;
                               });
                             },
                             userId: userId,
@@ -453,10 +451,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                         if (!_isAddingComment)
                           Center(
                             child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isAddingComment = true;
-                                });
+                              onPressed: () {setState(() {_isAddingComment = true;});
                               },
                               child: const Text('Add a comment'),
                             ),
@@ -475,23 +470,19 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             final textComment = comment['commentText'];
 
                             final formattedTime = timestamp != null
-                                ? DateFormat('dd/MM/yyyy')
-                                    .format(DateTime.parse(timestamp))
-                                : '';
+                                ? DateFormat('dd/MM/yyyy').format(DateTime.parse(timestamp)) : '';
+                            print(comment);
 
                             return Visibility(
                               visible: !isCommentHidden ||
                                   isAdmin ||
                                   idUser == userId,
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (isAdmin || !isCommentHidden)
-                                      Text(
-                                        '$userName - $formattedTime',
+                                      Text('$userName - $formattedTime',
                                         style: const TextStyle(
                                           fontSize: 14,
                                           fontStyle: FontStyle.italic,
@@ -499,20 +490,16 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                         ),
                                       ),
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         if (isCommentHidden)
                                           if (isAdmin)
                                             Opacity(
                                               opacity: 0.5,
                                               child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(12.0),
+                                                padding: const EdgeInsets.all(12.0),
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  borderRadius: BorderRadius.circular(8.0),
                                                   color: Colors.grey[200],
                                                 ),
                                                 child: Text(textComment),
@@ -522,24 +509,19 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             Opacity(
                                               opacity: 0.5,
                                               child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(12.0),
+                                                padding: const EdgeInsets.all(12.0),
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  borderRadius: BorderRadius.circular(8.0),
                                                   color: Colors.grey[200],
                                                 ),
-                                                child: Text(
-                                                    'Comment has been removed'),
+                                                child: Text('Comment has been removed'),
                                               ),
                                             )
                                         else if (!isCommentHidden)
                                           Container(
                                             padding: const EdgeInsets.all(12.0),
                                             decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
+                                              borderRadius: BorderRadius.circular(8.0),
                                               color: Colors.grey[200],
                                             ),
                                             child: Text(textComment),
@@ -547,11 +529,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                         if ((idUser == userId || isAdmin) &&
                                             !isCommentHidden)
                                           BlocProvider(
-                                              create: (context) => CommentBloc(
-                                                  DatabaseHelper.instance),
+                                              create: (context) => CommentBloc(DatabaseHelper.instance),
                                               child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
+                                                  mainAxisSize: MainAxisSize.min,
                                                   children: [
                                                     IconButton(
                                                       icon: Icon(Icons.edit),
@@ -569,20 +549,17 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                           color: Colors.red),
                                                       onPressed: () {
                                                         if (idComment != null) {
-                                                          BlocProvider.of<
-                                                                      CommentBloc>(
-                                                                  context)
-                                                              .add(
-                                                            HideComment(
-                                                                idComment),
+                                                          BlocProvider.of<CommentBloc>(context).add(
+                                                            HideComment(idComment),
                                                           );
                                                         } else {
-                                                          print(
-                                                              'Comment ID is null');
+                                                          print('Comment ID is null');
                                                         }
                                                       },
                                                     ),
-                                                  ]))
+                                                  ]
+                                              )
+                                          )
                                       ],
                                     ),
                                   ],
@@ -664,7 +641,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
               onPressed: () {
                 final updatedContent = controller.text;
                 BlocProvider.of<CommentBloc>(context).add(
-                  UpdateComment(
+                  EditComment(
                     commentId,
                     updatedContent,
                     cafeId,

@@ -170,15 +170,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ? DecorationImage(
                                             image: FileImage(
                                                 File(cafe['imagePath'])),
-                                            fit: BoxFit.cover,
+                                            fit: BoxFit.contain,
                                           )
                                         : null,
                                   ),
                                   child: cafe['imagePath'] == null ||
                                           cafe['imagePath'].isEmpty
                                       ? Icon(Icons.image,
-                                          color: Colors.grey, size: 30)
-                                      : null,
+                                          color: Colors.grey, size: 30) : null,
                                 ),
                                 title: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,13 +198,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     SizedBox(height: 4),
-                                    Text(
-                                      cafe['description'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[500],
-                                      ),
-                                    ),
+                                    // Text(
+                                    //   cafe['description'],
+                                    //   style: TextStyle(
+                                    //     fontSize: 14,
+                                    //     color: Colors.grey[500],
+                                    //   ),
+                                    // ),
                                   ],
                                 ),
                                 onTap: () async {
