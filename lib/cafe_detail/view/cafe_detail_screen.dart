@@ -12,9 +12,9 @@ import '../../utils/database_helper.dart';
 import '../../utils/session_manager.dart';
 
 class CafeDetailScreen extends StatefulWidget {
-  final Map<String, dynamic> cafe;
+   Map<String, dynamic> cafe;
 
-  const CafeDetailScreen({Key? key, required this.cafe}) : super(key: key);
+   CafeDetailScreen({super.key, required this.cafe});
 
   @override
   _CafeDetailScreenState createState() => _CafeDetailScreenState();
@@ -59,6 +59,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
         );
       }
     } catch (e) {
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error selecting image: $e')),
       );
@@ -257,10 +258,10 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
 }
 
 class CafeDetailBody extends StatefulWidget {
-  final Map<String, dynamic> cafe;
-  final ValueChanged<bool> onAdminStatusChanged;
+  Map<String, dynamic> cafe;
+  ValueChanged<bool> onAdminStatusChanged;
 
-  const CafeDetailBody(
+  CafeDetailBody(
       {super.key, required this.cafe, required this.onAdminStatusChanged});
 
   @override
@@ -290,7 +291,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
   }
 
   Future<void> _loadImagePaths() async {
-    final images =
+    var images =
         await DatabaseHelper.instance.getCafeImages(widget.cafe['id']);
     setState(() {
       imagePaths = images;
@@ -536,7 +537,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                     IconButton(
                                                       icon: Icon(Icons.edit),
                                                       onPressed: () {
-                                                        showEditCommentDialog(
+                                                        _showEditCommentDialog(
                                                             context,
                                                             idComment,
                                                             textComment,
@@ -617,7 +618,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
     );
   }
 
-  void showEditCommentDialog(
+  void _showEditCommentDialog(
       BuildContext context, int commentId, String initialContent, int cafeId) {
     final TextEditingController controller =
         TextEditingController(text: initialContent);
