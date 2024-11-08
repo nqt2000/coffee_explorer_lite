@@ -51,8 +51,8 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       if (userId != null) {
         await _dbHelper.updateComment(event.commentId, event.newComment);
 
-        // final comments = await _dbHelper.getCommentsByCafe(event.cafeId);
         emit(UpdateCommentSuccess());
+        add(FetchComments(event.cafeId));
       } else {
         emit(UpdateCommentFailure('User not logged in.'));
       }
@@ -75,6 +75,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
         if (isAdmin || comment['userId'] == userId) {
           await _dbHelper.hideComment(event.commentId, userId);
           emit(CommentActionSuccess());
+          add(FetchComments(event.cafeId));
         } else {
           emit(
               CommentError('You do not have permission to hide this comment.'));

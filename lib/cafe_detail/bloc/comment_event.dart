@@ -30,8 +30,9 @@ class EditComment extends CommentEvent {
 
 class HideComment extends CommentEvent {
   final int commentId;
+  final int cafeId;
 
-  const HideComment(this.commentId);
+  const HideComment(this.commentId, this.cafeId);
 
   @override
   List<Object> get props => [commentId];

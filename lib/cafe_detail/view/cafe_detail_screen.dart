@@ -207,6 +207,19 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     final TextEditingController descriptionController =
         TextEditingController(text: cafe['description'] ?? '');
 
+    VoidCallback onCancel = () {
+      Navigator.pop(context);
+    };
+
+    VoidCallback onSave = () async {
+      await _updateCafeDetails(
+        nameController.text,
+        addressController.text,
+        descriptionController.text,
+      );
+      Navigator.pop(context);
+    };
+
     showDialog(
       context: context,
       builder: (context) {
@@ -234,20 +247,11 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: onCancel,
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () async {
-                await _updateCafeDetails(
-                  nameController.text,
-                  addressController.text,
-                  descriptionController.text,
-                );
-                Navigator.pop(context);
-              },
+              onPressed: onSave,
               child: const Text('Save'),
             ),
           ],
@@ -276,6 +280,8 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
   int _currentIndex = 0;
   PageController? _pageController;
   List<String> imagePaths = [];
+
+  late int cafeId;
 
   @override
   void initState() {
@@ -551,7 +557,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                       onPressed: () {
                                                         if (idComment != null) {
                                                           BlocProvider.of<CommentBloc>(context).add(
-                                                            HideComment(idComment),
+                                                            HideComment(idComment, widget.cafe['id']),
                                                           );
                                                         } else {
                                                           print('Comment ID is null');
@@ -623,6 +629,22 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
     final TextEditingController controller =
         TextEditingController(text: initialContent);
 
+    onCancel() {
+      Navigator.pop(context);
+    }
+
+    onSave() {
+      final updatedContent = controller.text;
+      BlocProvider.of<CommentBloc>(context).add(
+        EditComment(
+          commentId,
+          updatedContent,
+          cafeId,
+        ),
+      );
+      Navigator.pop(context);
+    }
+
     showDialog(
       context: context,
       builder: (dialogContext) => BlocProvider.value(
@@ -635,21 +657,11 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: onCancel,
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                final updatedContent = controller.text;
-                BlocProvider.of<CommentBloc>(context).add(
-                  EditComment(
-                    commentId,
-                    updatedContent,
-                    cafeId,
-                  ),
-                );
-                Navigator.pop(dialogContext);
-              },
+              onPressed: onSave,
               child: Text('Save'),
             ),
           ],
