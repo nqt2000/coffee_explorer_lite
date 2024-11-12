@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../home/bloc/home_bloc.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
@@ -72,6 +74,11 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
         create: (context) => CommentBloc(DatabaseHelper.instance),
         child: Scaffold(
           appBar: AppBar(
+            leading: BackButton(
+              onPressed: (){
+                Navigator.pop(context, "refresh");
+              },
+            ),
             title: Row(
               children: [
                 GestureDetector(

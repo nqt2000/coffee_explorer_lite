@@ -177,7 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: cafe['imagePath'] == null ||
                                           cafe['imagePath'].isEmpty
                                       ? Icon(Icons.image,
-                                          color: Colors.grey, size: 30) : null,
+                                          color: Colors.grey, size: 30)
+                                      : null,
                                 ),
                                 title: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,14 +212,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                   final updatedImagePath = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => CafeDetailScreen(cafe: cafe),
+                                      builder: (context) =>
+                                          CafeDetailScreen(cafe: cafe),
                                     ),
                                   );
 
                                   if (updatedImagePath != null) {
-                                    setState(() {
-                                      cafe['imagePath'] = updatedImagePath;
-                                    });
+                                    switch (updatedImagePath) {
+                                      case "refresh":
+                                        {
+                                          context
+                                              .read<HomeBloc>()
+                                              .add(FetchCafes());
+                                        }
+                                      default:
+                                        {
+                                          setState(() {
+                                            cafe['imagePath'] =
+                                                updatedImagePath;
+                                          });
+                                        }
+                                    }
                                   }
                                 },
                               ),
@@ -282,15 +296,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
+                BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+                  return TextButton(
+                    onPressed: () {
+                      context.read<HomeBloc>().add(FetchCafes());
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  );
+                }),
                 BlocBuilder<HomeBloc, HomeState>(
                   builder: (context, state) {
                     return TextButton(
@@ -371,14 +388,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             if (state is ImagePicked) {
                               return Center(
                                 child: Wrap(
-                                spacing: 8.0,
-                                children: state.imagePaths.map((path) {
-                                  return Image.file(File(path),
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.contain
-                                  );
-                                }).toList(),
+                                  spacing: 8.0,
+                                  children: state.imagePaths.map((path) {
+                                    return Image.file(File(path),
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.contain);
+                                  }).toList(),
                                 ),
                               );
                             }
@@ -393,6 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () {
+                    context.read<HomeBloc>().add(FetchCafes());
                     Navigator.of(dialogContext).pop();
                   },
                   child: Text(

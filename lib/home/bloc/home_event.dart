@@ -7,7 +7,12 @@ abstract class HomeEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class FetchCafes extends HomeEvent {}
+class FetchCafes extends HomeEvent {
+  const FetchCafes();
+
+  @override
+  List<Object> get props => [];
+}
 
 class FilterCafes extends HomeEvent {
   final String query;
@@ -50,7 +55,7 @@ class DeleteCafe extends HomeEvent {
 
 class ResetImageState extends HomeEvent {}
 
-class RefreshCafes extends HomeEvent {
-  @override
-  List<Object> get props => [];
-}
+// class RefreshCafes extends HomeEvent {
+//   @override
+//   List<Object> get props => [];
+// }
