@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+// import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
 import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import '../../home/bloc/home_bloc.dart';
+// import '../../home/bloc/home_bloc.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
@@ -47,12 +48,16 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
+
         await DatabaseHelper.instance
             .updateCafeImage(widget.cafe['id'], image.path);
 
-        setState(() {
-          widget.cafe['imagePath'] = image.path;
-        });
+        // setState(() {
+        //   widget.cafe['imagePath'] = image.path;
+        // });
+
+        final newCafe = Map.of(cafe);
+        newCafe['imagePath'] = image.path;
 
         Navigator.pop(context, widget.cafe['imagePath']);
       } else {
@@ -61,7 +66,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
         );
       }
     } catch (e) {
-      print(e);
+      // print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error selecting image: $e')),
       );
@@ -189,7 +194,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
       if (updatedCafe != null) {
         setState(() {
           cafe = Map<String, dynamic>.from(updatedCafe);
-          print("Updated cafe: $cafe");
+          // print("Updated cafe: $cafe");
         });
       }
     } else {
@@ -214,18 +219,18 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     final TextEditingController descriptionController =
         TextEditingController(text: cafe['description'] ?? '');
 
-    VoidCallback onCancel = () {
+    onCancel() {
       Navigator.pop(context);
-    };
+    }
 
-    VoidCallback onSave = () async {
+    onSave() async {
       await _updateCafeDetails(
         nameController.text,
         addressController.text,
         descriptionController.text,
       );
       Navigator.pop(context);
-    };
+    }
 
     showDialog(
       context: context,

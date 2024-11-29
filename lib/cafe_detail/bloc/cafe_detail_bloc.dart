@@ -41,13 +41,13 @@ class CafeDetailBloc extends Bloc<CafeDetailEvent, CafeDetailState> {
   }
 
 
-  Future<ImageInfo> _getImageInfo(Image image) async {
-    final completer = Completer<ImageInfo>();
-    image.image.resolve(const ImageConfiguration()).addListener(
-      ImageStreamListener((ImageInfo info, bool _) {
-        completer.complete(info);
-      }),
-    );
-    return completer.future;
-  }
+  // Future<ImageInfo> _getImageInfo(Image image) async {
+  //   final completer = Completer<ImageInfo>();
+  //   image.image.resolve(const ImageConfiguration()).addListener(
+  //     ImageStreamListener((ImageInfo info, bool _) {
+  //       completer.complete(info);
+  //     }),
+  //   );
+  //   return completer.future;
+  // }
 }

@@ -53,7 +53,7 @@ class DeleteCafe extends HomeEvent {
   const DeleteCafe(this.cafeId);
 }
 
-class ResetImageState extends HomeEvent {}
+// class ResetImageState extends HomeEvent {}
 
 // class RefreshCafes extends HomeEvent {
 //   @override

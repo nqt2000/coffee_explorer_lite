@@ -9,7 +9,7 @@ import 'home_event.dart';
 import 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  List<Map<String, dynamic>> _cachedCafes = [];
+  // List<Map<String, dynamic>> _cachedCafes = [];
 
   HomeBloc() : super(HomeLoading()) {
     on<FetchCafes>(_onFetchCafes);
@@ -19,7 +19,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FetchCafeDetail>(_onFetchCafeDetail);
     on<AddImagesToCafe>(_onAddImagesToCafe);
     on<DeleteCafe>(_onDeleteCafe);
-    on<ResetImageState>(_onResetImageState);
+    // on<ResetImageState>(_onResetImageState);
     // on<RefreshCafes>(_onRefreshCafes);
   }
 
@@ -27,7 +27,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
     try {
       final cafes = await DatabaseHelper.instance.queryAllCafes();
-      _cachedCafes = cafes;
+      // _cachedCafes = cafes;
       emit(HomeLoaded(cafes, cafes));
     } catch (e) {
       emit(HomeError("Error fetching cafes: ${e.toString()}"));
@@ -123,9 +123,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
   }
 
-  void _onResetImageState(ResetImageState event, Emitter<HomeState> emit) {
-    emit(HomeLoaded(_cachedCafes, _cachedCafes));
-  }
+  // void _onResetImageState(ResetImageState event, Emitter<HomeState> emit) {
+  //   emit(HomeLoaded(_cachedCafes, _cachedCafes));
+  // }
 
   // Future<void> _onRefreshCafes(RefreshCafes event, Emitter<HomeState> emit) async {
   //   try {

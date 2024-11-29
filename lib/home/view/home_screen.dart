@@ -225,13 +225,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                               .read<HomeBloc>()
                                               .add(FetchCafes());
                                         }
-                                      default:
-                                        {
-                                          setState(() {
-                                            cafe['imagePath'] =
-                                                updatedImagePath;
-                                          });
-                                        }
+                                      // default:
+                                      //   {
+                                      //     setState(() {
+                                      //       cafe['imagePath'] =
+                                      //           updatedImagePath;
+                                      //     });
+                                      //   }
                                     }
                                   }
                                 },
@@ -372,8 +372,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextField(
                           controller: descriptionController,
                           decoration: InputDecoration(labelText: 'Description'),
-                          minLines: 5,
-                          maxLines: 6,
+                          minLines: 4,
+                          maxLines: 5,
                           keyboardType: TextInputType.multiline,
                         ),
                         SizedBox(height: 10),
