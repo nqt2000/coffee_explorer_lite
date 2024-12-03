@@ -19,15 +19,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FetchCafeDetail>(_onFetchCafeDetail);
     on<AddImagesToCafe>(_onAddImagesToCafe);
     on<DeleteCafe>(_onDeleteCafe);
-    // on<ResetImageState>(_onResetImageState);
-    // on<RefreshCafes>(_onRefreshCafes);
   }
 
   Future<void> _onFetchCafes(FetchCafes event, Emitter<HomeState> emit) async {
     emit(HomeLoading());
     try {
       final cafes = await DatabaseHelper.instance.queryAllCafes();
-      // _cachedCafes = cafes;
       emit(HomeLoaded(cafes, cafes));
     } catch (e) {
       emit(HomeError("Error fetching cafes: ${e.toString()}"));
@@ -66,6 +63,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         imagePaths.add(localImage.path);
       }
       emit(ImagePicked(imagePaths));
+      add(FetchCafes());
     } catch (e) {
       emit(HomeError('Failed to pick images: ${e.toString()}'));
     }
@@ -122,17 +120,4 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(HomeError("Failed to delete cafe: ${e.toString()}"));
     }
   }
-
-  // void _onResetImageState(ResetImageState event, Emitter<HomeState> emit) {
-  //   emit(HomeLoaded(_cachedCafes, _cachedCafes));
-  // }
-
-  // Future<void> _onRefreshCafes(RefreshCafes event, Emitter<HomeState> emit) async {
-  //   try {
-  //     final cafes = await DatabaseHelper.instance.queryAllCafes();
-  //     emit(HomeLoaded(cafes, cafes));
-  //   } catch (e) {
-  //     emit(HomeError("Error refreshing cafes: ${e.toString()}"));
-  //   }
-  // }
 }

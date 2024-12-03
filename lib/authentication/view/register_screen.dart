@@ -36,12 +36,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
-              key: _formKey, // Ensure that the Form key is used
+              key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250,
                     child: TextFormField(
                       controller: nameController,
                       decoration: InputDecoration(labelText: 'Full Name'),
@@ -56,9 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 20), // Thêm khoảng cách giữa các ô nhập
+                  SizedBox(height: 20),
                   SizedBox(
-                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250,
                     child: TextFormField(
                       controller: emailController,
                       decoration: InputDecoration(labelText: 'Email'),
@@ -75,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   SizedBox(height: 20),
                   SizedBox(
-                    width: 250, // Đặt độ rộng cố định cho ô nhập liệu
+                    width: 250,
                     child: TextFormField(
                       controller: passwordController,
                       decoration: InputDecoration(labelText: 'Password'),
@@ -95,7 +95,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        // Trigger register event when form is valid
                         registerBloc.event.add(RegisterButtonPressed(
                           nameController.text,
                           emailController.text,
@@ -109,11 +108,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     stream: registerBloc.state,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Container(); // Loading state
+                        return Container();
                       } else if (snapshot.data is RegisterLoading) {
-                        return CircularProgressIndicator(); // Show loading indicator
+                        return CircularProgressIndicator();
                       } else if (snapshot.data is RegisterSuccess) {
-                        // Navigate to LoginScreen after successful registration
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           Navigator.pushReplacement(
                               context,

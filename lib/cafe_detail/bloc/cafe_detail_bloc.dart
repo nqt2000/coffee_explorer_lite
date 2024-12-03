@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'cafe_detail_event.dart';
 import 'cafe_detail_state.dart';
@@ -39,15 +38,4 @@ class CafeDetailBloc extends Bloc<CafeDetailEvent, CafeDetailState> {
       }
     }
   }
-
-
-  // Future<ImageInfo> _getImageInfo(Image image) async {
-  //   final completer = Completer<ImageInfo>();
-  //   image.image.resolve(const ImageConfiguration()).addListener(
-  //     ImageStreamListener((ImageInfo info, bool _) {
-  //       completer.complete(info);
-  //     }),
-  //   );
-  //   return completer.future;
-  // }
 }

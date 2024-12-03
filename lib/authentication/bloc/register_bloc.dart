@@ -23,14 +23,11 @@ class RegisterBloc {
       _stateController.add(RegisterLoading());
 
       try {
-        // Kiểm tra xem email đã tồn tại chưa
         final bool emailExists = await dbHelper.emailExists(event.email);
 
         if (emailExists) {
-          // Nếu email đã tồn tại, báo lỗi
           _stateController.add(RegisterFailure('Email already exists!'));
         } else {
-          // Nếu email chưa tồn tại, thực hiện đăng ký
           await dbHelper.insertUser({
             'name': event.name,
             'email': event.email,

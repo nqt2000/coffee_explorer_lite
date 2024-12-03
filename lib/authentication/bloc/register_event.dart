@@ -8,9 +8,9 @@ class RegisterButtonPressed extends RegisterEvent {
   RegisterButtonPressed(this.name, this.email, this.password);
 }
 
-class CheckEmailExistence extends RegisterEvent {
-  final String email;
-
-  CheckEmailExistence(this.email);
-}
+// class CheckEmailExistence extends RegisterEvent {
+//   final String email;
+//
+//   CheckEmailExistence(this.email);
+// }
 

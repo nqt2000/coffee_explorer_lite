@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-// import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
-import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-// import '../../home/bloc/home_bloc.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
@@ -236,13 +233,13 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Edit Cafe Details'),
+          title: const Text('Edit Coffee Shop Details'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Cafe Name'),
+                decoration: const InputDecoration(labelText: 'Coffee Shop Name'),
               ),
               const SizedBox(height: 8),
               TextField(

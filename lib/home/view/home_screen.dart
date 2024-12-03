@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return AlertDialog(
                                     title: Text('Delete Confirmation'),
                                     content: Text(
-                                        'Are you sure you want to delete this cafe?'),
+                                        'Are you sure you want to delete this coffee shop?'),
                                     actions: <Widget>[
                                       TextButton(
                                         onPressed: () =>
@@ -247,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(15.0),
                       child: ElevatedButton(
                         onPressed: () => _showAddCafeDialog(context),
-                        child: Text('Add Cafe'),
+                        child: Text('Add New Coffee Shop'),
                       ),
                     ),
                 ],
@@ -347,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return BlocProvider.value(
             value: BlocProvider.of<HomeBloc>(context),
             child: AlertDialog(
-              title: Text('Add Cafe'),
+              title: Text('Add New Coffee Shop'),
               content: SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -359,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         TextField(
                           controller: nameController,
-                          decoration: InputDecoration(labelText: 'Cafe Name'),
+                          decoration: InputDecoration(labelText: 'Coffee Shop Name'),
                           minLines: 1,
                           maxLines: 2,
                         ),
@@ -456,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Only admins can add cafes!')),
+        SnackBar(content: Text('Only admins can add new coffee shop!')),
       );
     }
   }
