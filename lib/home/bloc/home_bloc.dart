@@ -45,7 +45,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                 .contains(event.query.toLowerCase());
       }).toList();
       emit(HomeLoaded(currentState.cafes, filteredCafes));
-      add(FetchCafes());
     }
   }
 
@@ -63,7 +62,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         imagePaths.add(localImage.path);
       }
       emit(ImagePicked(imagePaths));
-      add(FetchCafes());
+      // add(FetchCafes());
     } catch (e) {
       emit(HomeError('Failed to pick images: ${e.toString()}'));
     }

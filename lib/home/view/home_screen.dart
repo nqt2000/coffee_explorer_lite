@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.grey[600],
                                       ),
                                     ),
-                                    SizedBox(height: 4),
+                                    // SizedBox(height: 4),
                                     // Text(
                                     //   cafe['description'],
                                     //   style: TextStyle(
