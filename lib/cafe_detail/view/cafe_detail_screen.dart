@@ -494,7 +494,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                   isAdmin ||
                                   idUser == userId,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                padding: const EdgeInsets.symmetric(vertical: 3.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -540,44 +540,68 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                               borderRadius: BorderRadius.circular(8.0),
                                               color: Colors.grey[200],
                                             ),
-                                            child: Text(textComment),
+                                            child: Container(
+                                              constraints: BoxConstraints(
+                                                maxWidth: 240,
+                                              ),
+                                              padding: const EdgeInsets.all(2.0),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[200],
+                                              ),
+                                              child: Text(
+                                                textComment,
+                                                style: TextStyle(fontSize: 16.0),
+                                                softWrap: true,
+                                              ),
+                                            ),
                                           ),
                                         if ((idUser == userId || isAdmin) &&
                                             !isCommentHidden)
                                           BlocProvider(
-                                              create: (context) => CommentBloc(DatabaseHelper.instance),
-                                              child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    IconButton(
-                                                      icon: Icon(Icons.edit),
-                                                      onPressed: () {
-                                                        _showEditCommentDialog(
-                                                            context,
-                                                            idComment,
-                                                            textComment,
-                                                            widget.cafe['id']);
-                                                      },
-                                                    ),
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                          Icons.delete,
-                                                          color: Colors.red),
-                                                      onPressed: () {
-                                                        if (idComment != null) {
-                                                          BlocProvider.of<CommentBloc>(context).add(
-                                                            HideComment(idComment, widget.cafe['id']),
-                                                          );
-                                                        } else {
-                                                          print('Comment ID is null');
-                                                        }
-                                                      },
-                                                    ),
-                                                  ]
-                                              )
+                                            create: (context) => CommentBloc(DatabaseHelper.instance),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: Icon(Icons.edit),
+                                                  iconSize: 20,
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: BoxConstraints(),
+                                                  onPressed: () {
+                                                    _showEditCommentDialog(
+                                                      context,
+                                                      idComment,
+                                                      textComment,
+                                                      widget.cafe['id'],
+                                                    );
+                                                  },
+                                                ),
+                                                // SizedBox(width: 2),
+                                                IconButton(
+                                                  icon: Icon(Icons.delete, color: Colors.red),
+                                                  iconSize: 20,
+                                                  padding: EdgeInsets.zero,
+                                                  constraints: BoxConstraints(),
+                                                  onPressed: () {
+                                                    if (idComment != null) {
+                                                      BlocProvider.of<CommentBloc>(context).add(
+                                                        HideComment(idComment, widget.cafe['id']),
+                                                      );
+                                                    } else {
+                                                      print('Comment ID is null');
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
                                           )
+
                                       ],
                                     ),
+                                    Divider(
+                                        color: Colors.black12,
+                                        height: 20,
+                                    )
                                   ],
                                 ),
                               ),
@@ -663,11 +687,17 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
           content: TextField(
             controller: controller,
             decoration: InputDecoration(labelText: 'Comment'),
+            minLines: 1,
+            maxLines: 5,
+            maxLength: 150,
           ),
           actions: [
             TextButton(
               onPressed: onCancel,
-              child: Text('Cancel'),
+              child: Text(
+                  'Cancel',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
             TextButton(
               onPressed: onSave,
@@ -729,6 +759,7 @@ class _AddCommentFormState extends State<AddCommentForm> {
             border: OutlineInputBorder(),
           ),
           maxLines: null,
+          maxLength:150,
           keyboardType: TextInputType.multiline,
         ),
         const SizedBox(height: 8),

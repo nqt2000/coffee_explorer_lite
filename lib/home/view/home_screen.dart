@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return BlocProvider(
       create: (context) => HomeBloc()..add(FetchCafes()),
       child: Scaffold(
@@ -53,7 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-          ],
+          ],leading: null,
+          automaticallyImplyLeading: false,
         ),
         body: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
@@ -198,14 +199,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.grey[600],
                                       ),
                                     ),
-                                    // SizedBox(height: 4),
-                                    // Text(
-                                    //   cafe['description'],
-                                    //   style: TextStyle(
-                                    //     fontSize: 14,
-                                    //     color: Colors.grey[500],
-                                    //   ),
-                                    // ),
                                   ],
                                 ),
                                 onTap: () async {
@@ -225,13 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                               .read<HomeBloc>()
                                               .add(FetchCafes());
                                         }
-                                      // default:
-                                      //   {
-                                      //     setState(() {
-                                      //       cafe['imagePath'] =
-                                      //           updatedImagePath;
-                                      //     });
-                                      //   }
                                     }
                                   }
                                 },
@@ -359,21 +345,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         TextField(
                           controller: nameController,
-                          decoration: InputDecoration(labelText: 'Coffee Shop Name'),
-                          minLines: 1,
-                          maxLines: 2,
+                          decoration: InputDecoration(
+                              labelText: 'Coffee Shop Name', counterText: ''),
+                          maxLines: 1,
+                          maxLength: 25,
                         ),
                         TextField(
                           controller: addressController,
-                          decoration: InputDecoration(labelText: 'Address'),
+                          decoration: InputDecoration(
+                              labelText: 'Address', counterText: ''),
                           minLines: 1,
-                          maxLines: 2,
+                          maxLines: 3,
+                          maxLength: 100,
                         ),
                         TextField(
                           controller: descriptionController,
                           decoration: InputDecoration(labelText: 'Description'),
                           minLines: 4,
                           maxLines: 5,
+                          maxLength: 300,
                           keyboardType: TextInputType.multiline,
                         ),
                         SizedBox(height: 10),

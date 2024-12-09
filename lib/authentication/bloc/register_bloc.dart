@@ -1,10 +1,13 @@
 import 'dart:async';
+import '../../utils/session_manager.dart';
 import 'register_event.dart';
 import 'register_state.dart';
 import '../../utils/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterBloc {
   final DatabaseHelper dbHelper = DatabaseHelper.instance;
+  final SessionManager sessionManager = SessionManager();
 
   final _stateController = StreamController<RegisterState>();
 
@@ -34,6 +37,7 @@ class RegisterBloc {
             'password': event.password,
             'isAdmin': 0,
           });
+          await sessionManager.saveUserSession(event.email);
           _stateController.add(RegisterSuccess());
         }
       } catch (e) {

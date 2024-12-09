@@ -16,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final rePasswordController = TextEditingController();
   final RegisterBloc registerBloc = RegisterBloc();
 
   @override
@@ -48,12 +49,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please input your name';
-                        }
-                        if (!RegExp(r"^[a-zA-Z ,.'-]+$").hasMatch(value)) {
+                        } else if (!RegExp("[a-zA-Z_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]")
+                            .hasMatch(value)) {
                           return 'Invalid name';
+                        } else if (value.length < 3) {
+                          return 'Name should be at least 3 characters!';
                         }
                         return null;
                       },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -65,12 +69,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please input email';
-                        }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                        } else if (!RegExp('[^@]+@[^@]+\.[^@]+')
+                            .hasMatch(value.toLowerCase())) {
                           return 'Email invalid';
                         }
                         return null;
                       },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -89,6 +94,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         }
                         return null;
                       },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    width: 250,
+                    child: TextFormField(
+                      controller: rePasswordController,
+                      decoration: InputDecoration(labelText: 'Re-password'),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please input password';
+                        }
+                        if (value != passwordController.text) {
+                          return 'Re-password does not match';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -97,12 +122,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if (_formKey.currentState!.validate()) {
                         registerBloc.event.add(RegisterButtonPressed(
                           nameController.text,
-                          emailController.text,
+                          emailController.text.toLowerCase(),
                           passwordController.text,
+                          rePasswordController.text,
                         ));
                       }
                     },
                     child: Text('Register'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Back Login'),
                   ),
                   StreamBuilder<RegisterState>(
                     stream: registerBloc.state,

@@ -19,6 +19,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   final LoginBloc loginBloc = LoginBloc();
 
+  //
+  var _isObscured;
+
+  @override
+  void initState(){
+    super.initState();
+    _isObscured = true;
+  }
+
   @override
   void dispose() {
     loginBloc.dispose();
@@ -46,15 +55,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextFormField(
                       controller: emailController,
                       decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) {
+                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please input email';
                         }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value.toLowerCase())) {
                           return 'Email invalid';
                         }
                         return null;
                       },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -73,6 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -80,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         loginBloc.event.add(LoginButtonPressed(
-                          emailController.text,
+                          emailController.text.toLowerCase(),
                           passwordController.text,
                         ));
                       }
@@ -89,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => RegisterScreen(),
