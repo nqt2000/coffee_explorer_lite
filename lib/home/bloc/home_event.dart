@@ -25,6 +25,8 @@ class FilterCafes extends HomeEvent {
 
 class PickImages extends HomeEvent {}
 
+class PickSingleImage extends HomeEvent {}
+
 class AddCafe extends HomeEvent {
   final Map<String, dynamic> newCafe;
 

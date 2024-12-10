@@ -240,17 +240,21 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(labelText: 'Coffee Shop Name'),
+                maxLength: 25,
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: addressController,
                 decoration: const InputDecoration(labelText: 'Address'),
+                maxLength: 150,
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
+                minLines: 1,
                 maxLines: 3,
+                maxLength: 300,
               ),
             ],
           ),
@@ -513,12 +517,17 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             Opacity(
                                               opacity: 0.5,
                                               child: Container(
-                                                padding: const EdgeInsets.all(12.0),
+                                                constraints: BoxConstraints(
+                                                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                                                ),
+                                                padding: const EdgeInsets.all(2.0),
                                                 decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(8.0),
                                                   color: Colors.grey[200],
                                                 ),
-                                                child: Text(textComment),
+                                                child: Text(
+                                                  textComment,
+                                                  softWrap: true,
+                                                ),
                                               ),
                                             )
                                           else
@@ -542,7 +551,8 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             ),
                                             child: Container(
                                               constraints: BoxConstraints(
-                                                maxWidth: 240,
+                                                // maxWidth: MediaQuery.of(context).size.width * 0.8 ,
+                                                maxWidth: 240 ,
                                               ),
                                               padding: const EdgeInsets.all(2.0),
                                               decoration: BoxDecoration(
@@ -550,7 +560,6 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                               ),
                                               child: Text(
                                                 textComment,
-                                                style: TextStyle(fontSize: 16.0),
                                                 softWrap: true,
                                               ),
                                             ),
@@ -684,12 +693,15 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
         value: BlocProvider.of<CommentBloc>(context),
         child: AlertDialog(
           title: Text('Edit comment'),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(labelText: 'Comment'),
-            minLines: 1,
-            maxLines: 5,
-            maxLength: 150,
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: TextField(
+              controller: controller,
+              decoration: InputDecoration(labelText: 'Comment'),
+              minLines: 1,
+              maxLines: 5,
+              maxLength: 150,
+            ),
           ),
           actions: [
             TextButton(

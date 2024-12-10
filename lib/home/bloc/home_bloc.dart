@@ -15,6 +15,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FetchCafes>(_onFetchCafes);
     on<FilterCafes>(_onFilterCafes);
     on<PickImages>(_onPickImages);
+    on<PickSingleImage>(_onPickSingleImage);
     on<AddCafe>(_onAddCafe);
     on<FetchCafeDetail>(_onFetchCafeDetail);
     on<AddImagesToCafe>(_onAddImagesToCafe);
@@ -67,6 +68,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(HomeError('Failed to pick images: ${e.toString()}'));
     }
   }
+
+  Future<void> _onPickSingleImage(PickSingleImage event, Emitter<HomeState> emit) async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        final directory = await getApplicationDocumentsDirectory();
+        final imageName = basename(pickedFile.path);
+        final savedImagePath = '${directory.path}/$imageName';
+
+        final File localImage = await File(pickedFile.path).copy(savedImagePath);
+
+        emit(ImagePicked([localImage.path]));
+      } else {
+        emit(HomeError('No image selected'));
+      }
+    } catch (e) {
+      emit(HomeError('Failed to pick image: ${e.toString()}'));
+    }
+  }
+
 
   Future<void> _onAddCafe(AddCafe event, Emitter<HomeState> emit) async {
     emit(HomeLoading());

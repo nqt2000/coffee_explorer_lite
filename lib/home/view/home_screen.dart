@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => HomeBloc()..add(FetchCafes()),
       child: Scaffold(
@@ -53,7 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-          ],leading: null,
+          ],
+          leading: null,
           automaticallyImplyLeading: false,
         ),
         body: BlocBuilder<HomeBloc, HomeState>(
@@ -337,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
               content: SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.5,
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
                   ),
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.8,
@@ -346,22 +347,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextField(
                           controller: nameController,
                           decoration: InputDecoration(
-                              labelText: 'Coffee Shop Name', counterText: ''),
+                            labelText: 'Coffee Shop Name',
+                            alignLabelWithHint: true,
+                          ),
                           maxLines: 1,
                           maxLength: 25,
                         ),
                         TextField(
                           controller: addressController,
                           decoration: InputDecoration(
-                              labelText: 'Address', counterText: ''),
+                            labelText: 'Address',
+                            alignLabelWithHint: true,
+                          ),
                           minLines: 1,
                           maxLines: 3,
-                          maxLength: 100,
+                          maxLength: 150,
                         ),
                         TextField(
                           controller: descriptionController,
-                          decoration: InputDecoration(labelText: 'Description'),
-                          minLines: 4,
+                          decoration: InputDecoration(
+                            labelText: 'Description',
+                            alignLabelWithHint: true,
+                          ),
+                          minLines: 1,
                           maxLines: 5,
                           maxLength: 300,
                           keyboardType: TextInputType.multiline,
@@ -369,9 +377,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(height: 10),
                         ElevatedButton(
                           onPressed: () {
-                            context.read<HomeBloc>().add(PickImages());
+                            context.read<HomeBloc>().add(PickSingleImage());
                           },
-                          child: Text('Upload Images'),
+                          child: Text('Upload Logo Shop'),
                         ),
                         BlocBuilder<HomeBloc, HomeState>(
                           builder: (context, state) {
@@ -381,8 +389,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   spacing: 8.0,
                                   children: state.imagePaths.map((path) {
                                     return Image.file(File(path),
-                                        width: 100,
-                                        height: 100,
+                                        width: 150,
+                                        height: 150,
                                         fit: BoxFit.contain);
                                   }).toList(),
                                 ),
