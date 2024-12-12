@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:coffee_explorer_lite/authentication/view/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,42 +21,44 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   final LoginBloc loginBloc = LoginBloc();
   DateTime timeBackPressed = DateTime.now();
-  bool canPopNow = false;
+  bool _passwordVisible = false;
+  final FocusNode _passwordFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordVisible = false;
+  }
 
   @override
   void dispose() {
     loginBloc.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: canPopNow,
+      canPop: false,
       onPopInvokedWithResult: (didPop, dynamic) {
         final difference = DateTime.now().difference(timeBackPressed);
         final isExitWarning = difference >= Duration(seconds: 2);
-
         timeBackPressed = DateTime.now();
 
         if (isExitWarning) {
-          final message = 'Press back again to exit.';
-          Fluttertoast.showToast(msg: message);
-
-          setState(() {
-            canPopNow = false;
-          });
+          Fluttertoast.showToast(msg: 'Press back again to exit');
         } else {
           Fluttertoast.cancel();
-
-          setState(() {
-            canPopNow = true;
-          });
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Login'),
+          title: Text('Login'),
+          // title: Image.asset('images/coffee-shop.jpg', width: 150),
           automaticallyImplyLeading: false,
         ),
         body: Center(
@@ -70,11 +70,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // ClipRRect(
+                    //   borderRadius: BorderRadius.circular(30),
+                    //   child: Image.asset(
+                    //     'images/coffee-shop.jpg',
+                    //     width: MediaQuery.of(context).size.width * 0.6,
+                    //     fit: BoxFit.fitWidth,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 50),
                     SizedBox(
-                      width: 250,
+                      width: MediaQuery.of(context).size.width * 0.65,
                       child: TextFormField(
                         controller: emailController,
-                        decoration: const InputDecoration(labelText: 'Email'),
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                        ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please input email';
@@ -90,12 +101,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
-                      width: 250,
+                      width: MediaQuery.of(context).size.width * 0.65,
                       child: TextFormField(
                         controller: passwordController,
-                        decoration:
-                            const InputDecoration(labelText: 'Password'),
-                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              size: 20,
+                              _passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _passwordVisible = !_passwordVisible;
+                              });
+                            },
+                          ),
+                        ),
+                        obscureText: !_passwordVisible,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please input password';
