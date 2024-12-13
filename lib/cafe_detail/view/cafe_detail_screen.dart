@@ -12,9 +12,9 @@ import '../../utils/database_helper.dart';
 import '../../utils/session_manager.dart';
 
 class CafeDetailScreen extends StatefulWidget {
-   Map<String, dynamic> cafe;
+  Map<String, dynamic> cafe;
 
-   CafeDetailScreen({super.key, required this.cafe});
+  CafeDetailScreen({super.key, required this.cafe});
 
   @override
   _CafeDetailScreenState createState() => _CafeDetailScreenState();
@@ -45,13 +45,8 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-
         await DatabaseHelper.instance
             .updateCafeImage(widget.cafe['id'], image.path);
-
-        // setState(() {
-        //   widget.cafe['imagePath'] = image.path;
-        // });
 
         final newCafe = Map.of(cafe);
         newCafe['imagePath'] = image.path;
@@ -72,107 +67,121 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-        create: (context) => CommentBloc(DatabaseHelper.instance),
-        child: Scaffold(
-          appBar: AppBar(
-            leading: BackButton(
-              onPressed: (){
-                Navigator.pop(context, "refresh");
-              },
-            ),
-            title: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _pickImage(context),
-                  child: cafe['imagePath'] != null &&
-                          cafe['imagePath'].isNotEmpty &&
-                          File(cafe['imagePath']).existsSync()
-                      ? Container(
-                          width: 40,
-                          height: 40,
-                          margin: const EdgeInsets.only(right: 8.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8.0),
-                            color: Colors.white,
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final image =
-                                    Image.file(File(cafe['imagePath']));
-
-                                return FutureBuilder<ImageInfo>(
-                                  future: _getImageInfo(image),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                            ConnectionState.done &&
-                                        snapshot.hasData) {
-                                      final imageInfo = snapshot.data!;
-                                      final aspectRatio =
-                                          imageInfo.image.width /
-                                              imageInfo.image.height;
-                                      final fit = aspectRatio > 1
-                                          ? BoxFit.fitWidth
-                                          : BoxFit.fitHeight;
-
-                                      return Image.file(
-                                        File(cafe['imagePath']),
-                                        fit: fit,
-                                      );
-                                    } else if (snapshot.hasError ||
-                                        !snapshot.hasData) {
-                                      return Icon(Icons.error,
-                                          color: Colors.white, size: 30);
-                                    } else {
-                                      return Icon(Icons.image,
-                                          color: Colors.white, size: 30);
-                                    }
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.image,
-                          color: Colors.white,
-                          size: 40,
-                        ),
-                ),
-                Expanded(
-                  child: Text(
-                    cafe['name'],
-                    style: const TextStyle(fontSize: 18),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              if (isAdmin)
-                IconButton(
-                  icon: const Icon(Icons.edit),
+    return PopScope(
+      canPop: true,
+      child: BlocProvider(
+          create: (context) => CommentBloc(DatabaseHelper.instance),
+          child: MaterialApp(
+            theme: ThemeData(
+                primarySwatch: Colors.blue,
+                inputDecorationTheme: InputDecorationTheme(
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(color: Colors.black)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ))),
+            home: Scaffold(
+              appBar: AppBar(
+                leading: BackButton(
                   onPressed: () {
-                    _showEditCafeDialog(context);
+                    Navigator.pop(context, "refresh");
                   },
                 ),
-            ],
-          ),
-          body: BlocProvider(
-            create: (context) => CommentBloc(DatabaseHelper.instance)
-              ..add(FetchComments(cafe['id'])),
-            child: CafeDetailBody(
-              cafe: cafe,
-              onAdminStatusChanged: (isAdminStatus) {
-                setState(() {
-                  isAdmin = isAdminStatus;
-                });
-              },
+                title: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _pickImage(context),
+                      child: cafe['imagePath'] != null &&
+                              cafe['imagePath'].isNotEmpty &&
+                              File(cafe['imagePath']).existsSync()
+                          ? Container(
+                              width: 40,
+                              height: 40,
+                              margin: const EdgeInsets.only(right: 8.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0),
+                                color: Colors.white,
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8.0),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final image =
+                                        Image.file(File(cafe['imagePath']));
+
+                                    return FutureBuilder<ImageInfo>(
+                                      future: _getImageInfo(image),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                                ConnectionState.done &&
+                                            snapshot.hasData) {
+                                          final imageInfo = snapshot.data!;
+                                          final aspectRatio =
+                                              imageInfo.image.width /
+                                                  imageInfo.image.height;
+                                          final fit = aspectRatio > 1
+                                              ? BoxFit.fitWidth
+                                              : BoxFit.fitHeight;
+
+                                          return Image.file(
+                                            File(cafe['imagePath']),
+                                            fit: fit,
+                                          );
+                                        } else if (snapshot.hasError ||
+                                            !snapshot.hasData) {
+                                          return Icon(Icons.error,
+                                              color: Colors.white, size: 30);
+                                        } else {
+                                          return Icon(Icons.image,
+                                              color: Colors.white, size: 30);
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.image,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        cafe['name'],
+                        style: const TextStyle(fontSize: 18),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  if (isAdmin)
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        _showEditCafeDialog(context);
+                      },
+                    ),
+                ],
+              ),
+              body: BlocProvider(
+                create: (context) => CommentBloc(DatabaseHelper.instance)
+                  ..add(FetchComments(cafe['id'])),
+                child: CafeDetailBody(
+                  cafe: cafe,
+                  onAdminStatusChanged: (isAdminStatus) {
+                    setState(() {
+                      isAdmin = isAdminStatus;
+                    });
+                  },
+                ),
+              ),
             ),
-          ),
-        ));
+          )),
+    );
   }
 
   Future<void> _updateCafeDetails(
@@ -205,10 +214,12 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     if (!isAdmin) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('You do not have permission to make this change.')),
+          content: Text('You do not have permission to make this change.'),
+        ),
       );
       return;
     }
+
     final TextEditingController nameController =
         TextEditingController(text: cafe['name']);
     final TextEditingController addressController =
@@ -216,55 +227,79 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     final TextEditingController descriptionController =
         TextEditingController(text: cafe['description'] ?? '');
 
-    onCancel() {
-      Navigator.pop(context);
-    }
-
-    onSave() async {
-      await _updateCafeDetails(
-        nameController.text,
-        addressController.text,
-        descriptionController.text,
-      );
-      Navigator.pop(context);
-    }
-
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
+        // Use dialogContext for the dialog itself
         return AlertDialog(
           title: const Text('Edit Coffee Shop Details'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Coffee Shop Name'),
-                maxLength: 25,
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
-                maxLength: 150,
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                minLines: 1,
-                maxLines: 3,
-                maxLength: 300,
-              ),
-            ],
+          content: SingleChildScrollView(
+            // Wrap content in SingleChildScrollView to handle overflows
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.width * 0.02),
+                    child: const Text('Coffee Shop Name'),
+                  ),
+                ),
+                TextField(
+                  controller: nameController,
+                  maxLength: 25,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.width * 0.02),
+                    child: const Text('Address'),
+                  ),
+                ),
+                TextField(
+                  controller: addressController,
+                  maxLength: 150,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: MediaQuery.of(context).size.width * 0.02),
+                    child: const Text('Description'),
+                  ),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  minLines: 1,
+                  maxLines: 3,
+                  maxLength: 300,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: onCancel,
-              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(dialogContext); // Use dialogContext here
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
-            ElevatedButton(
-              onPressed: onSave,
+            TextButton(
+              onPressed: () async {
+                await _updateCafeDetails(
+                  nameController.text,
+                  addressController.text,
+                  descriptionController.text,
+                );
+                Navigator.pop(dialogContext); // Use dialogContext here
+              },
               child: const Text('Save'),
             ),
           ],
@@ -310,8 +345,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
   }
 
   Future<void> _loadImagePaths() async {
-    var images =
-        await DatabaseHelper.instance.getCafeImages(widget.cafe['id']);
+    var images = await DatabaseHelper.instance.getCafeImages(widget.cafe['id']);
     setState(() {
       imagePaths = images;
       _pageController = PageController(initialPage: _currentIndex);
@@ -386,7 +420,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                       ),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(
+              height: MediaQuery.of(context).size.height*0.01,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(imagePaths.length, (index) {
@@ -416,6 +452,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                 );
               }),
             ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height*0.01,
+            ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -428,6 +467,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                   ),
                 ),
               ],
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height*0.01,
             ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,11 +501,13 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                           AddCommentForm(
                             cafeId: widget.cafe['id'],
                             onSubmitSuccess: () {
-                              setState(() {_isAddingComment = false;
+                              setState(() {
+                                _isAddingComment = false;
                               });
                             },
                             onCancel: () {
-                              setState(() {_isAddingComment = false;
+                              setState(() {
+                                _isAddingComment = false;
                               });
                             },
                             userId: userId,
@@ -471,7 +515,10 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                         if (!_isAddingComment)
                           Center(
                             child: ElevatedButton(
-                              onPressed: () {setState(() {_isAddingComment = true;});
+                              onPressed: () {
+                                setState(() {
+                                  _isAddingComment = true;
+                                });
                               },
                               child: const Text('Add a comment'),
                             ),
@@ -490,7 +537,9 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                             final textComment = comment['commentText'];
 
                             final formattedTime = timestamp != null
-                                ? DateFormat('dd/MM/yyyy').format(DateTime.parse(timestamp)) : '';
+                                ? DateFormat('dd/MM/yyyy')
+                                    .format(DateTime.parse(timestamp))
+                                : '';
                             print(comment);
 
                             return Visibility(
@@ -498,19 +547,26 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                   isAdmin ||
                                   idUser == userId,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 3.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                      Text('$userName - $formattedTime',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontStyle: FontStyle.italic,
-                                          color: Colors.grey,
-                                        ),
+                                    Divider(
+                                      color: Colors.black12,
+                                      height: 20,
+                                    ),
+                                    Text(
+                                      '$userName - $formattedTime',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontStyle: FontStyle.italic,
+                                        color: Colors.grey,
                                       ),
+                                    ),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         if (isCommentHidden)
                                           if (isAdmin)
@@ -518,9 +574,14 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                               opacity: 0.5,
                                               child: Container(
                                                 constraints: BoxConstraints(
-                                                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                                                  maxWidth:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          0.8,
                                                 ),
-                                                padding: const EdgeInsets.all(2.0),
+                                                padding:
+                                                    const EdgeInsets.all(2.0),
                                                 decoration: BoxDecoration(
                                                   color: Colors.grey[200],
                                                 ),
@@ -534,27 +595,33 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             Opacity(
                                               opacity: 0.5,
                                               child: Container(
-                                                padding: const EdgeInsets.all(12.0),
+                                                padding:
+                                                    const EdgeInsets.all(12.0),
                                                 decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(8.0),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                   color: Colors.grey[200],
                                                 ),
-                                                child: Text('Comment has been removed'),
+                                                child: Text(
+                                                    'Comment has been removed'),
                                               ),
                                             )
                                         else if (!isCommentHidden)
                                           Container(
                                             padding: const EdgeInsets.all(12.0),
                                             decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(8.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
                                               color: Colors.grey[200],
                                             ),
                                             child: Container(
                                               constraints: BoxConstraints(
                                                 // maxWidth: MediaQuery.of(context).size.width * 0.8 ,
-                                                maxWidth: 240 ,
+                                                maxWidth: 240,
                                               ),
-                                              padding: const EdgeInsets.all(2.0),
+                                              padding:
+                                                  const EdgeInsets.all(2.0),
                                               decoration: BoxDecoration(
                                                 color: Colors.grey[200],
                                               ),
@@ -567,7 +634,8 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                         if ((idUser == userId || isAdmin) &&
                                             !isCommentHidden)
                                           BlocProvider(
-                                            create: (context) => CommentBloc(DatabaseHelper.instance),
+                                            create: (context) => CommentBloc(
+                                                DatabaseHelper.instance),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
@@ -587,30 +655,32 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                 ),
                                                 // SizedBox(width: 2),
                                                 IconButton(
-                                                  icon: Icon(Icons.delete, color: Colors.red),
+                                                  icon: Icon(Icons.delete,
+                                                      color: Colors.red),
                                                   iconSize: 20,
                                                   padding: EdgeInsets.zero,
                                                   constraints: BoxConstraints(),
                                                   onPressed: () {
                                                     if (idComment != null) {
-                                                      BlocProvider.of<CommentBloc>(context).add(
-                                                        HideComment(idComment, widget.cafe['id']),
+                                                      BlocProvider.of<
+                                                                  CommentBloc>(
+                                                              context)
+                                                          .add(
+                                                        HideComment(idComment,
+                                                            widget.cafe['id']),
                                                       );
                                                     } else {
-                                                      print('Comment ID is null');
+                                                      print(
+                                                          'Comment ID is null');
                                                     }
                                                   },
                                                 ),
                                               ],
                                             ),
                                           )
-
                                       ],
                                     ),
-                                    Divider(
-                                        color: Colors.black12,
-                                        height: 20,
-                                    )
+
                                   ],
                                 ),
                               ),
@@ -707,7 +777,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
             TextButton(
               onPressed: onCancel,
               child: Text(
-                  'Cancel',
+                'Cancel',
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -764,17 +834,24 @@ class _AddCommentFormState extends State<AddCommentForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Padding(
+            padding:
+                EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02),
+            child: Text('Add a comment'),
+          ),
+        ),
         TextField(
           controller: _commentController,
           decoration: const InputDecoration(
-            labelText: 'Add a comment',
             border: OutlineInputBorder(),
           ),
-          maxLines: null,
-          maxLength:150,
+          minLines: 1,
+          maxLines: 5,
+          maxLength: 150,
           keyboardType: TextInputType.multiline,
         ),
-        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -798,7 +875,6 @@ class _AddCommentFormState extends State<AddCommentForm> {
               },
               child: const Text('Submit'),
             ),
-            const SizedBox(width: 8),
           ],
         ),
       ],

@@ -1,12 +1,14 @@
 import 'package:coffee_explorer_lite/authentication/view/register_screen.dart';
+import 'package:coffee_explorer_lite/common/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+import '../../home/view/home_screen.dart';
 import '../../utils/session_manager.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
-import '../../home/view/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,12 +24,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final LoginBloc loginBloc = LoginBloc();
   DateTime timeBackPressed = DateTime.now();
   bool _passwordVisible = false;
-  final FocusNode _passwordFocusNode = FocusNode();
+  bool _isButtonEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _passwordVisible = false;
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
   }
 
   @override
@@ -38,6 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _updateButtonState() {
+    setState(() {
+      _isButtonEnabled =
+          emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,36 +65,70 @@ class _LoginScreenState extends State<LoginScreen> {
           SystemNavigator.pop();
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Login'),
-          // title: Image.asset('images/coffee-shop.jpg', width: 150),
-          automaticallyImplyLeading: false,
-        ),
-        body: Center(
-          child: SingleChildScrollView(
+      child: MaterialApp(
+        theme: ThemeData(
+            primarySwatch: Colors.blue,
+            inputDecorationTheme: InputDecorationTheme(
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    borderSide: BorderSide(color: Colors.black)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ))),
+        home: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'COFFEE EXPLORER',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: "Times New Roman",
+              ),
+            ),
+            automaticallyImplyLeading: false,
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // ClipRRect(
-                    //   borderRadius: BorderRadius.circular(30),
-                    //   child: Image.asset(
-                    //     'images/coffee-shop.jpg',
-                    //     width: MediaQuery.of(context).size.width * 0.6,
-                    //     fit: BoxFit.fitWidth,
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 50),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Image.asset(
+                        'assets/images/coffee-shop.jpg',
+                        height: MediaQuery.of(context).size.height * 0.3,
+                        width: MediaQuery.of(context).size.height * 1,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.65,
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    Divider(),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            left: MediaQuery.of(context).size.width * 0.02),
+                        child: Text('Email'),
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      width: MediaQuery.of(context).size.width,
                       child: TextFormField(
                         controller: emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
+                        decoration: InputDecoration(
+                          hintText: 'example@mail.com',
+                          hintStyle:
+                              TextStyle(color: Colors.grey, fontSize: 14),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -99,13 +143,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
                     ),
-                    const SizedBox(height: 20),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.65,
+                      width: MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            left: MediaQuery.of(context).size.width * 0.02),
+                        child: Text('Password'),
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      width: MediaQuery.of(context).size.width,
                       child: TextFormField(
                         controller: passwordController,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          hintText: 'Password',
+                          hintStyle:
+                              TextStyle(color: Colors.grey, fontSize: 14),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
                           suffixIcon: IconButton(
                             icon: Icon(
                               size: 20,
@@ -129,39 +184,99 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!RegExp(r'[A-Z]').hasMatch(value)) {
                             return 'Password must contain at least one uppercase character';
                           }
+                          if (value.length < 8) {
+                            return 'Password must contain at least 8 character';
+                          }
                           return null;
                         },
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          loginBloc.event.add(LoginButtonPressed(
-                            emailController.text.toLowerCase(),
-                            passwordController.text,
-                          ));
-                        }
-                      },
-                      child: const Text('Login'),
+                    // ElevatedButton(
+                    //   onPressed: _isButtonEnabled
+                    //       ? () {
+                    //           if (_formKey.currentState!.validate()) {
+                    //             loginBloc.event.add(LoginButtonPressed(
+                    //               emailController.text.toLowerCase(),
+                    //               passwordController.text,
+                    //             ));
+                    //           }
+                    //         }
+                    //       : null,
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: Colors.green,
+                    //     minimumSize: Size(MediaQuery.of(context).size.width * 1,
+                    //         MediaQuery.of(context).size.height * 0.06),
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(10),
+                    //     ),
+                    //   ),
+                    //   child: _isButtonEnabled
+                    //       ? Text(
+                    //           'LOGIN',
+                    //           style: TextStyle(
+                    //               fontWeight: FontWeight.bold,
+                    //               color: Colors.white),
+                    //         )
+                    //       : Text(
+                    //           'LOGIN',
+                    //           style: TextStyle(
+                    //               fontWeight: FontWeight.bold,
+                    //               color: Colors.black45),
+                    //         ),
+                    // ),
+
+                    PrimaryButton(
+                      title: _isButtonEnabled
+                          ? Text(
+                              'LOGIN',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            )
+                          : Text(
+                              'LOGIN',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black45),
+                            ),
+                      onPressed: _isButtonEnabled
+                          ? () {
+                              if (_formKey.currentState!.validate()) {
+                                loginBloc.event.add(LoginButtonPressed(
+                                  emailController.text.toLowerCase(),
+                                  passwordController.text,
+                                ));
+                              }
+                            }
+                          : null,
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text('Register'),
-                    ),
+
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(
+                        "Don't have account?",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child: Text('Register'),
+                      ),
+                    ]),
                     StreamBuilder<LoginState>(
                       stream: loginBloc.state,
                       builder: (context, snapshot) {
                         if (snapshot.data is LoginLoading) {
-                          return const CircularProgressIndicator();
+                          return CircularProgressIndicator();
                         } else if (snapshot.data is LoginSuccess) {
                           WidgetsBinding.instance
                               .addPostFrameCallback((_) async {

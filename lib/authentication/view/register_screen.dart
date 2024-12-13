@@ -23,21 +23,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
   DateTime timeBackPressed = DateTime.now();
   bool _passwordVisible = false;
   bool _rePasswordVisible = false;
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    registerBloc.dispose();
-    super.dispose();
-  }
+  bool _isButtonEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _passwordVisible = false;
     _rePasswordVisible = false;
+    nameController.addListener(_updateButtonState);
+    emailController.addListener(_updateButtonState);
+    passwordController.addListener(_updateButtonState);
+    rePasswordController.addListener(_updateButtonState);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    rePasswordController.dispose();
+    registerBloc.dispose();
+    super.dispose();
+  }
+
+  void _updateButtonState() {
+    setState(() {
+      _isButtonEnabled = nameController.text.isNotEmpty &&
+          emailController.text.isNotEmpty &&
+          passwordController.text.isNotEmpty &&
+          rePasswordController.text.isNotEmpty;
+    });
   }
 
   @override
@@ -56,176 +71,259 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SystemNavigator.pop();
         }
       },
-      child: Scaffold(
-        appBar: AppBar(title: Text('Register')),
-        body: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 250,
-                      child: TextFormField(
-                        controller: nameController,
-                        decoration: InputDecoration(labelText: 'Full Name'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please input your name';
-                          } else if (!RegExp(
-                                  "[a-zA-Z_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]")
-                              .hasMatch(value)) {
-                            return 'Invalid name';
-                          } else if (value.length < 3) {
-                            return 'Name should be at least 3 characters!';
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: MaterialApp(
+        theme: ThemeData(
+            primarySwatch: Colors.blue,
+            inputDecorationTheme: InputDecorationTheme(
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    borderSide: BorderSide(color: Colors.black)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ))),
+        home: Scaffold(
+          appBar: AppBar(title: Text('Register')),
+          body: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.02),
+                          child: Text('Full Name'),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    SizedBox(
-                      width: 250,
-                      child: TextFormField(
-                        controller: emailController,
-                        decoration: InputDecoration(labelText: 'Email'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please input email';
-                          } else if (!RegExp('[^@]+@[^@]+\.[^@]+')
-                              .hasMatch(value.toLowerCase())) {
-                            return 'Email invalid';
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width,
+                        child: TextFormField(
+                          controller: nameController,
+                          decoration: InputDecoration(
+                            hintText: 'Nguyen Van A',
+                            hintStyle:
+                                TextStyle(color: Colors.grey, fontSize: 14),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please input your name';
+                            } else if (!RegExp(
+                                    "[a-zA-Z_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]")
+                                .hasMatch(value)) {
+                              return 'Invalid name';
+                            } else if (value.length < 3) {
+                              return 'Name should be at least 3 characters!';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    SizedBox(
-                      width: 250,
-                      child: TextFormField(
-                        controller: passwordController,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              size: 20,
-                              _passwordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey,
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.02),
+                          child: Text('Email'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width,
+                        child: TextFormField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            hintText: 'example@mail.com',
+                            hintStyle:
+                                TextStyle(color: Colors.grey, fontSize: 14),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please input email';
+                            } else if (!RegExp('[^@]+@[^@]+\.[^@]+')
+                                .hasMatch(value.toLowerCase())) {
+                              return 'Email invalid';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.02),
+                          child: Text('Password'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width,
+                        child: TextFormField(
+                          controller: passwordController,
+                          decoration: InputDecoration(
+                            hintText: 'DemoPassword',
+                            hintStyle:
+                                TextStyle(color: Colors.grey, fontSize: 14),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                size: 20,
+                                _passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _passwordVisible = !_passwordVisible;
+                                });
+                              },
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
+                          ),
+                          obscureText: !_passwordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please input password';
+                            }
+                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                              return 'Password must contain at least one uppercase character';
+                            }
+                            if (value.length < 8) {
+                              return 'Password must contain at least 8 character';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.02),
+                          child: Text('Re-password'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width,
+                        child: TextFormField(
+                          controller: rePasswordController,
+                          decoration: InputDecoration(
+                            hintText: 'DemoPassword',
+                            hintStyle:
+                                TextStyle(color: Colors.grey, fontSize: 14),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                size: 20,
+                                _rePasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _rePasswordVisible = !_rePasswordVisible;
+                                });
+                              },
+                            ),
+                          ),
+                          obscureText: !_rePasswordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please input re-password';
+                            }
+                            if (value != passwordController.text) {
+                              return 'Re-password does not match';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: _isButtonEnabled
+                            ? () {
+                                if (_formKey.currentState!.validate()) {
+                                  registerBloc.event.add(RegisterButtonPressed(
+                                    nameController.text,
+                                    emailController.text.toLowerCase(),
+                                    passwordController.text,
+                                    rePasswordController.text,
+                                  ));
+                                }
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          minimumSize: Size(
+                              MediaQuery.of(context).size.width * 1,
+                              MediaQuery.of(context).size.height * 0.06),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        obscureText: !_passwordVisible,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please input password';
-                          }
-                          if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                            return 'Password must contain at least one uppercase character';
-                          }
-                          if(value.length < 8){
-                            return 'Password must contain at least 8 character';
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: _isButtonEnabled
+                            ? Text(
+                                'REGISTER',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              )
+                            : Text(
+                                'REGISTER',
+                                style: TextStyle(
+                                    color: Colors.black45,
+                                    fontWeight: FontWeight.bold),
+                              ),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    SizedBox(
-                      width: 250,
-                      child: TextFormField(
-                        controller: rePasswordController,
-                        decoration: InputDecoration(
-                          labelText: 'Re-password',
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              size: 20,
-                              _rePasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey,
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginScreen(),
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _rePasswordVisible = !_rePasswordVisible;
-                              });
-                            },
-                          ),
-                        ),
-                        obscureText: !_rePasswordVisible,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please input re-password';
-                          }
-                          if (value != passwordController.text) {
-                            return 'Re-password does not match';
-                          }
-                          return null;
+                          );
                         },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: Text('Back Login'),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          registerBloc.event.add(RegisterButtonPressed(
-                            nameController.text,
-                            emailController.text.toLowerCase(),
-                            passwordController.text,
-                            rePasswordController.text,
-                          ));
-                        }
-                      },
-                      child: Text('Register'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text('Back Login'),
-                    ),
-                    StreamBuilder<RegisterState>(
-                      stream: registerBloc.state,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Container();
-                        } else if (snapshot.data is RegisterLoading) {
-                          return CircularProgressIndicator();
-                        } else if (snapshot.data is RegisterSuccess) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => LoginScreen()));
-                          });
-                        } else if (snapshot.data is RegisterFailure) {
-                          // Show error message
-                          return Text((snapshot.data as RegisterFailure).error);
-                        }
-                        return Container(); // Default fallback
-                      },
-                    ),
-                  ],
+                      StreamBuilder<RegisterState>(
+                        stream: registerBloc.state,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container();
+                          } else if (snapshot.data is RegisterLoading) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.data is RegisterSuccess) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginScreen()));
+                            });
+                          } else if (snapshot.data is RegisterFailure) {
+                            // Show error message
+                            return Text(
+                                (snapshot.data as RegisterFailure).error);
+                          }
+                          return Container(); // Default fallback
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
