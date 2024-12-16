@@ -1,3 +1,4 @@
+import 'package:coffee_explorer_lite/common/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,9 +21,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? userFullName;
-  bool? isAdmin;
+  bool isAdmin = false;
   DateTime timeBackPressed = DateTime.now();
-
+  final HomeBloc homeBloc = HomeBloc();
 
   @override
   void initState() {
@@ -65,9 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icon(Icons.logout),
                 onPressed: () {
                   SessionManager().clearSession();
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => LoginScreen()),
+                    // (route) => false,
                   );
                 },
               ),
@@ -91,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         decoration: InputDecoration(
                           hintText: "Search",
                           hintStyle:
-                          TextStyle(color: Colors.grey, fontSize: 14),
+                              TextStyle(color: Colors.grey, fontSize: 14),
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           prefixIcon: Icon(Icons.search),
                           border: OutlineInputBorder(),
@@ -140,18 +143,39 @@ class _HomeScreenState extends State<HomeScreen> {
                                       content: Text(
                                           'Are you sure you want to delete this coffee shop?'),
                                       actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(false),
-                                          child: Text(
-                                            'Cancel',
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(true),
-                                          child: Text('Delete'),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: PrimaryButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(false),
+                                                title: Text(
+                                                  'Cancel',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white),
+                                                ),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            ),
+                                            SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                                            Expanded(
+                                              child: PrimaryButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(true),
+                                                title: Text(
+                                                  'Delete',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                            )
+                                          ],
                                         ),
                                       ],
                                     );
@@ -204,7 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         : null,
                                   ),
                                   title: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         cafe['name'],
@@ -224,7 +249,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                   onTap: () async {
-                                    final updatedImagePath = await Navigator.push(
+                                    final updatedImagePath =
+                                        await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
@@ -253,10 +279,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (isAdmin == true)
                       Padding(
                         padding: const EdgeInsets.all(15.0),
-                        child: ElevatedButton(
-                          onPressed: () => _showAddCafeDialog(context),
-                          child: Text('Add New Coffee Shop'),
-                        ),
+                        child: PrimaryButton(
+                            onPressed: () => _showAddCafeDialog(context),
+                            title: Text(
+                              "Add New Coffee Shop",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            )),
                       ),
                   ],
                 );
@@ -282,11 +312,18 @@ class _HomeScreenState extends State<HomeScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<HomeBloc>().add(PickImages());
-                    },
-                    child: Text('Upload Images'),
+                  PrimaryButton(
+                      onPressed: () {
+                        context.read<HomeBloc>().add(PickImages());
+                      },
+                      title: Text(
+                        'Upload Images',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    backgroundColor: Colors.blue,
                   ),
                   BlocBuilder<HomeBloc, HomeState>(
                     builder: (context, state) {
@@ -305,32 +342,49 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               actions: [
-                BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-                  return TextButton(
-                    onPressed: () {
-                      context.read<HomeBloc>().add(FetchCafes());
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.red),
+                Row(
+                  children: [
+                    Expanded(
+                      child: BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, state) {
+                        return PrimaryButton(
+                          onPressed: () {
+                            context.read<HomeBloc>().add(FetchCafes());
+                            Navigator.of(dialogContext).pop();
+                          },
+                          title: Text(
+                            'Cancel',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                          backgroundColor: Colors.red,
+                        );
+                      }),
                     ),
-                  );
-                }),
-                BlocBuilder<HomeBloc, HomeState>(
-                  builder: (context, state) {
-                    return TextButton(
-                      onPressed: () {
-                        if (state is ImagePicked) {
-                          context
-                              .read<HomeBloc>()
-                              .add(AddImagesToCafe(cafeId, state.imagePaths));
-                          Navigator.of(dialogContext).pop();
-                        }
-                      },
-                      child: Text('Add Images'),
-                    );
-                  },
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                    Expanded(
+                      child: BlocBuilder<HomeBloc, HomeState>(
+                        builder: (context, state) {
+                          return PrimaryButton(
+                            onPressed: () {
+                              if (state is ImagePicked) {
+                                context.read<HomeBloc>().add(
+                                    AddImagesToCafe(cafeId, state.imagePaths));
+                                Navigator.of(dialogContext).pop();
+                              }
+                            },
+                            title: Text(
+                              'Add Images',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  ],
                 ),
               ],
             ),
@@ -369,7 +423,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: MediaQuery.of(context).size.width,
                           child: Padding(
-                            padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02),
+                            padding: EdgeInsets.only(
+                                left: MediaQuery.of(context).size.width * 0.02),
                             child: Text('Coffee Shop Name'),
                           ),
                         ),
@@ -384,7 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: MediaQuery.of(context).size.width,
                           child: Padding(
-                            padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02),
+                            padding: EdgeInsets.only(
+                                left: MediaQuery.of(context).size.width * 0.02),
                             child: Text('Address'),
                           ),
                         ),
@@ -400,7 +456,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: MediaQuery.of(context).size.width,
                           child: Padding(
-                            padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02),
+                            padding: EdgeInsets.only(
+                                left: MediaQuery.of(context).size.width * 0.02),
                             child: Text('Description'),
                           ),
                         ),
@@ -414,12 +471,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           maxLength: 300,
                           keyboardType: TextInputType.multiline,
                         ),
-                        SizedBox(height: 10),
-                        ElevatedButton(
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.01),
+                        PrimaryButton(
                           onPressed: () {
                             context.read<HomeBloc>().add(PickSingleImage());
                           },
-                          child: Text('Upload Logo Shop'),
+                          title: Text(
+                            'Upload Logo Shop',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                          backgroundColor: Colors.blue,
                         ),
                         BlocBuilder<HomeBloc, HomeState>(
                           builder: (context, state) {
@@ -445,47 +509,62 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    context.read<HomeBloc>().add(FetchCafes());
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-                BlocBuilder<HomeBloc, HomeState>(
-                  builder: (context, state) {
-                    return TextButton(
-                      onPressed: () {
-                        final name = nameController.text.trim();
-                        final address = addressController.text.trim();
+                Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButton(
+                        onPressed: () {
+                          context.read<HomeBloc>().add(FetchCafes());
+                          Navigator.of(dialogContext).pop();
+                        },
+                        title: Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                    Expanded(
+                      child: BlocBuilder<HomeBloc, HomeState>(
+                        builder: (context, state) {
+                          return PrimaryButton(
+                            onPressed: () {
+                              final name = nameController.text.trim();
+                              final address = addressController.text.trim();
 
-                        if (name.isEmpty || address.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Name and address are required!')),
+                              if (name.isEmpty || address.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Name and address are required!')),
+                                );
+                                return;
+                              }
+
+                              final newCafe = {
+                                'name': name,
+                                'address': address,
+                                'description': descriptionController.text,
+                                'imagePath': state is ImagePicked &&
+                                        state.imagePaths.isNotEmpty
+                                    ? state.imagePaths[0]
+                                    : '',
+                              };
+                              context.read<HomeBloc>().add(AddCafe(newCafe));
+                              Navigator.of(dialogContext).pop();
+                            },
+                            title: Text(
+                              'Add',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
                           );
-                          return;
-                        }
-
-                        final newCafe = {
-                          'name': name,
-                          'address': address,
-                          'description': descriptionController.text,
-                          'imagePath': state is ImagePicked &&
-                                  state.imagePaths.isNotEmpty
-                              ? state.imagePaths[0]
-                              : '',
-                        };
-                        context.read<HomeBloc>().add(AddCafe(newCafe));
-                        Navigator.of(dialogContext).pop();
-                      },
-                      child: Text('Add'),
-                    );
-                  },
+                        },
+                      ),
+                    )
+                  ],
                 ),
               ],
             ),

@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:coffee_explorer_lite/common/primary_button.dart';
+import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,11 +33,46 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     cafe = Map<String, dynamic>.from(widget.cafe);
   }
 
+  // Future<void> _pickImage(BuildContext context) async {
+  //   if (!isAdmin) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //           content: Text('You do not have permission to change the image.')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   final ImagePicker picker = ImagePicker();
+  //   try {
+  //     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  //
+  //     if (image != null) {
+  //       await DatabaseHelper.instance
+  //           .updateCafeImage(widget.cafe['id'], image.path);
+  //
+  //       final newCafe = Map.of(cafe);
+  //       newCafe['imagePath'] = image.path;
+  //
+  //       Navigator.pop(context, widget.cafe['imagePath']);
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('No image selected')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     // print(e);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error selecting image: $e')),
+  //     );
+  //   }
+  // }
+
   Future<void> _pickImage(BuildContext context) async {
     if (!isAdmin) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('You do not have permission to change the image.')),
+          content: Text('You do not have permission to change the image.'),
+        ),
       );
       return;
     }
@@ -45,20 +82,24 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        await DatabaseHelper.instance
-            .updateCafeImage(widget.cafe['id'], image.path);
+        await DatabaseHelper.instance.updateCafeImage(cafe['id'], image.path);
 
-        final newCafe = Map.of(cafe);
-        newCafe['imagePath'] = image.path;
+        final updatedCafe = Map<String, dynamic>.from(cafe);
+        updatedCafe['imagePath'] = image.path;
 
-        Navigator.pop(context, widget.cafe['imagePath']);
+        setState(() {
+          cafe = updatedCafe;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Image updated successfully')),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No image selected')),
         );
       }
     } catch (e) {
-      // print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error selecting image: $e')),
       );
@@ -91,7 +132,7 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
                 title: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => _pickImage(context),
+                      onTap: () async => _pickImage(context),
                       child: cafe['imagePath'] != null &&
                               cafe['imagePath'].isNotEmpty &&
                               File(cafe['imagePath']).existsSync()
@@ -123,9 +164,9 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
                                           final fit = aspectRatio > 1
                                               ? BoxFit.fitWidth
                                               : BoxFit.fitHeight;
-
                                           return Image.file(
                                             File(cafe['imagePath']),
+                                            key: ValueKey(cafe['imagePath']),
                                             fit: fit,
                                           );
                                         } else if (snapshot.hasError ||
@@ -282,26 +323,41 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext); // Use dialogContext here
-              },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                await _updateCafeDetails(
-                  nameController.text,
-                  addressController.text,
-                  descriptionController.text,
-                );
-                Navigator.pop(dialogContext); // Use dialogContext here
-              },
-              child: const Text('Save'),
-            ),
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                    },
+                    title: Text(
+                      'Cancel',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: PrimaryButton(
+                    onPressed: () async {
+                      await _updateCafeDetails(
+                        nameController.text,
+                        addressController.text,
+                        descriptionController.text,
+                      );
+                      Navigator.pop(dialogContext);
+                    },
+                    title: Text(
+                      'Save',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            )
           ],
         );
       },
@@ -421,7 +477,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
               ),
             ),
             SizedBox(
-              height: MediaQuery.of(context).size.height*0.01,
+              height: MediaQuery.of(context).size.height * 0.01,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -453,7 +509,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
               }),
             ),
             SizedBox(
-              height: MediaQuery.of(context).size.height*0.01,
+              height: MediaQuery.of(context).size.height * 0.01,
             ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,7 +525,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
               ],
             ),
             SizedBox(
-              height: MediaQuery.of(context).size.height*0.01,
+              height: MediaQuery.of(context).size.height * 0.01,
             ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -514,13 +570,13 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                           ),
                         if (!_isAddingComment)
                           Center(
-                            child: ElevatedButton(
+                            child: PrimaryButton(
                               onPressed: () {
                                 setState(() {
                                   _isAddingComment = true;
                                 });
                               },
-                              child: const Text('Add a comment'),
+                              title: Text('Add a comment'),
                             ),
                           ),
                         ListView.builder(
@@ -540,7 +596,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                 ? DateFormat('dd/MM/yyyy')
                                     .format(DateTime.parse(timestamp))
                                 : '';
-                            print(comment);
+                            // print(comment);
 
                             return Visibility(
                               visible: !isCommentHidden ||
@@ -585,9 +641,23 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                 decoration: BoxDecoration(
                                                   color: Colors.grey[200],
                                                 ),
-                                                child: Text(
-                                                  textComment,
-                                                  softWrap: true,
+                                                child: Container(
+                                                  constraints: BoxConstraints(
+                                                    maxWidth:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.8,
+                                                  ),
+                                                  padding: const EdgeInsets.all(
+                                                      12.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[200],
+                                                  ),
+                                                  child: Text(
+                                                    textComment,
+                                                    softWrap: true,
+                                                  ),
                                                 ),
                                               ),
                                             )
@@ -617,8 +687,11 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             ),
                                             child: Container(
                                               constraints: BoxConstraints(
-                                                // maxWidth: MediaQuery.of(context).size.width * 0.8 ,
-                                                maxWidth: 240,
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.7,
+                                                // maxWidth: 240,
                                               ),
                                               padding:
                                                   const EdgeInsets.all(2.0),
@@ -639,48 +712,68 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                IconButton(
-                                                  icon: Icon(Icons.edit),
-                                                  iconSize: 20,
-                                                  padding: EdgeInsets.zero,
-                                                  constraints: BoxConstraints(),
-                                                  onPressed: () {
-                                                    _showEditCommentDialog(
-                                                      context,
-                                                      idComment,
-                                                      textComment,
-                                                      widget.cafe['id'],
-                                                    );
-                                                  },
-                                                ),
-                                                // SizedBox(width: 2),
-                                                IconButton(
-                                                  icon: Icon(Icons.delete,
-                                                      color: Colors.red),
-                                                  iconSize: 20,
-                                                  padding: EdgeInsets.zero,
-                                                  constraints: BoxConstraints(),
-                                                  onPressed: () {
-                                                    if (idComment != null) {
-                                                      BlocProvider.of<
-                                                                  CommentBloc>(
-                                                              context)
-                                                          .add(
-                                                        HideComment(idComment,
-                                                            widget.cafe['id']),
-                                                      );
-                                                    } else {
-                                                      print(
-                                                          'Comment ID is null');
+                                                PopupMenuButton<int>(
+                                                  icon: Icon(Icons.more_vert),
+                                                  onSelected: (value) {
+                                                    switch (value) {
+                                                      case 1: // Edit option
+                                                        _showEditCommentDialog(
+                                                          context,
+                                                          idComment,
+                                                          textComment,
+                                                          widget.cafe['id'],
+                                                        );
+                                                        break;
+                                                      case 2: // Delete option
+                                                        if (idComment != null) {
+                                                          BlocProvider.of<
+                                                                      CommentBloc>(
+                                                                  context)
+                                                              .add(
+                                                            HideComment(
+                                                                idComment,
+                                                                widget.cafe[
+                                                                    'id']),
+                                                          );
+                                                        } else {
+                                                          print(
+                                                              'Comment ID is null');
+                                                        }
+                                                        break;
                                                     }
                                                   },
+                                                  itemBuilder: (context) => [
+                                                    PopupMenuItem(
+                                                      value: 1,
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons.edit,
+                                                              size: 20),
+                                                          SizedBox(width: 8),
+                                                          Text('Edit'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    PopupMenuItem(
+                                                      value: 2,
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons.delete,
+                                                              size: 20,
+                                                              color:
+                                                                  Colors.red),
+                                                          SizedBox(width: 8),
+                                                          Text('Delete'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
                                           )
                                       ],
                                     ),
-
                                   ],
                                 ),
                               ),
@@ -711,14 +804,19 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                           ),
                         if (!_isAddingComment)
                           Center(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isAddingComment = true;
-                                });
-                              },
-                              child: const Text('Add a comment'),
-                            ),
+                            child: PrimaryButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _isAddingComment = true;
+                                  });
+                                },
+                                title: Text(
+                                  'Add a comment',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                )),
                           ),
                       ],
                     );
@@ -741,22 +839,6 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
     final TextEditingController controller =
         TextEditingController(text: initialContent);
 
-    onCancel() {
-      Navigator.pop(context);
-    }
-
-    onSave() {
-      final updatedContent = controller.text;
-      BlocProvider.of<CommentBloc>(context).add(
-        EditComment(
-          commentId,
-          updatedContent,
-          cafeId,
-        ),
-      );
-      Navigator.pop(context);
-    }
-
     showDialog(
       context: context,
       builder: (dialogContext) => BlocProvider.value(
@@ -775,14 +857,28 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
           ),
           actions: [
             TextButton(
-              onPressed: onCancel,
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
               child: Text(
                 'Cancel',
                 style: TextStyle(color: Colors.red),
               ),
             ),
             TextButton(
-              onPressed: onSave,
+              onPressed: () {
+                final updatedContent = controller.text;
+
+                BlocProvider.of<CommentBloc>(context).add(
+                  EditComment(
+                    commentId,
+                    updatedContent,
+                    cafeId,
+                  ),
+                );
+
+                Navigator.pop(dialogContext);
+              },
               child: Text('Save'),
             ),
           ],
@@ -855,25 +951,36 @@ class _AddCommentFormState extends State<AddCommentForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            TextButton(
-              onPressed: widget.onCancel,
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.red),
+            Expanded(
+              child: PrimaryButton(
+                onPressed: widget.onCancel,
+                title: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                final commentText = _commentController.text;
-                if (commentText.isNotEmpty) {
-                  BlocProvider.of<CommentBloc>(context).add(
-                    AddComment(widget.cafeId, commentText),
-                  );
-                  _commentController.clear();
-                  widget.onSubmitSuccess();
-                }
-              },
-              child: const Text('Submit'),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+            Expanded(
+              child: PrimaryButton(
+                onPressed: () {
+                  final commentText = _commentController.text;
+                  if (commentText.isNotEmpty) {
+                    BlocProvider.of<CommentBloc>(context).add(
+                      AddComment(widget.cafeId, commentText),
+                    );
+                    _commentController.clear();
+                    widget.onSubmitSuccess();
+                  }
+                },
+                title: Text(
+                  'Submit',
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
             ),
           ],
         ),

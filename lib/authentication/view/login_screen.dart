@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Padding(
                         padding: EdgeInsets.only(
                             left: MediaQuery.of(context).size.width * 0.02),
-                        child: Text('Email'),
+                        child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold),),
                       ),
                     ),
                     SizedBox(
@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Padding(
                         padding: EdgeInsets.only(
                             left: MediaQuery.of(context).size.width * 0.02),
-                        child: Text('Password'),
+                        child: Text('Password', style: TextStyle(fontWeight: FontWeight.bold),),
                       ),
                     ),
                     SizedBox(
@@ -192,54 +192,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
                     ),
-                    // ElevatedButton(
-                    //   onPressed: _isButtonEnabled
-                    //       ? () {
-                    //           if (_formKey.currentState!.validate()) {
-                    //             loginBloc.event.add(LoginButtonPressed(
-                    //               emailController.text.toLowerCase(),
-                    //               passwordController.text,
-                    //             ));
-                    //           }
-                    //         }
-                    //       : null,
-                    //   style: ElevatedButton.styleFrom(
-                    //     backgroundColor: Colors.green,
-                    //     minimumSize: Size(MediaQuery.of(context).size.width * 1,
-                    //         MediaQuery.of(context).size.height * 0.06),
-                    //     shape: RoundedRectangleBorder(
-                    //       borderRadius: BorderRadius.circular(10),
-                    //     ),
-                    //   ),
-                    //   child: _isButtonEnabled
-                    //       ? Text(
-                    //           'LOGIN',
-                    //           style: TextStyle(
-                    //               fontWeight: FontWeight.bold,
-                    //               color: Colors.white),
-                    //         )
-                    //       : Text(
-                    //           'LOGIN',
-                    //           style: TextStyle(
-                    //               fontWeight: FontWeight.bold,
-                    //               color: Colors.black45),
-                    //         ),
-                    // ),
-
                     PrimaryButton(
-                      title: _isButtonEnabled
-                          ? Text(
-                              'LOGIN',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            )
-                          : Text(
-                              'LOGIN',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black45),
-                            ),
+                      title: Text(
+                        'LOGIN',
+                        style: _isButtonEnabled
+                            ? TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)
+                            : TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black45),
+                      ),
                       onPressed: _isButtonEnabled
                           ? () {
                               if (_formKey.currentState!.validate()) {
@@ -269,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
-                        child: Text('Register'),
+                        child: Text('Register', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),),
                       ),
                     ]),
                     StreamBuilder<LoginState>(

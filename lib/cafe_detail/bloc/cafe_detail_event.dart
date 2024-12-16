@@ -10,7 +10,7 @@ abstract class CafeDetailEvent extends Equatable {
 class FetchCafeDetail extends CafeDetailEvent {
   final int cafeId;
 
-  FetchCafeDetail(this.cafeId);
+  const FetchCafeDetail(this.cafeId);
 
   @override
   List<Object> get props => [cafeId];
@@ -19,8 +19,10 @@ class FetchCafeDetail extends CafeDetailEvent {
 class UpdateCafeDetail extends CafeDetailEvent {
   final Map<String, dynamic> updatedCafe;
 
-  UpdateCafeDetail(this.updatedCafe);
+  const UpdateCafeDetail(this.updatedCafe);
 
   @override
   List<Object> get props => [updatedCafe];
 }
+
+class PickImages extends CafeDetailEvent {}

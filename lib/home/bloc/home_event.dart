@@ -54,3 +54,10 @@ class DeleteCafe extends HomeEvent {
 
   const DeleteCafe(this.cafeId);
 }
+
+class LoggedOut extends HomeEvent {
+  const LoggedOut();
+
+  @override
+  List<Object?> get props => [];
+}

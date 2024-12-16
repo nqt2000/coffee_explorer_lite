@@ -1,3 +1,4 @@
+import 'package:coffee_explorer_lite/common/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -97,7 +98,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Padding(
                           padding: EdgeInsets.only(
                               left: MediaQuery.of(context).size.width * 0.02),
-                          child: Text('Full Name'),
+                          child: Text(
+                            'Full Name',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -131,7 +135,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Padding(
                           padding: EdgeInsets.only(
                               left: MediaQuery.of(context).size.width * 0.02),
-                          child: Text('Email'),
+                          child: Text(
+                            'Email',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -162,7 +169,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Padding(
                           padding: EdgeInsets.only(
                               left: MediaQuery.of(context).size.width * 0.02),
-                          child: Text('Password'),
+                          child: Text(
+                            'Password',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -211,7 +221,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Padding(
                           padding: EdgeInsets.only(
                               left: MediaQuery.of(context).size.width * 0.02),
-                          child: Text('Re-password'),
+                          child: Text(
+                            'Re-password',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -252,52 +265,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: _isButtonEnabled
-                            ? () {
-                                if (_formKey.currentState!.validate()) {
-                                  registerBloc.event.add(RegisterButtonPressed(
-                                    nameController.text,
-                                    emailController.text.toLowerCase(),
-                                    passwordController.text,
-                                    rePasswordController.text,
-                                  ));
-                                }
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          minimumSize: Size(
-                              MediaQuery.of(context).size.width * 1,
-                              MediaQuery.of(context).size.height * 0.06),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: _isButtonEnabled
-                            ? Text(
-                                'REGISTER',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              )
-                            : Text(
-                                'REGISTER',
-                                style: TextStyle(
-                                    color: Colors.black45,
-                                    fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: PrimaryButton(
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => LoginScreen(),
+                                  ),
+                                );
+                              },
+                              title: Text(
+                                'BACK',
+                                style: TextStyle(color: Colors.white),
                               ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
+                              backgroundColor: Colors.grey,
                             ),
-                          );
-                        },
-                        child: Text('Back Login'),
+                          ),
+                          SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                          Expanded(
+                            child: PrimaryButton(
+                              onPressed: _isButtonEnabled
+                                  ? () {
+                                      if (_formKey.currentState!.validate()) {
+                                        registerBloc.event
+                                            .add(RegisterButtonPressed(
+                                          nameController.text,
+                                          emailController.text.toLowerCase(),
+                                          passwordController.text,
+                                          rePasswordController.text,
+                                        ));
+                                      }
+                                    }
+                                  : null,
+                              title: Text(
+                                'REGISTER',
+                                style: _isButtonEnabled
+                                    ? TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold)
+                                    : TextStyle(
+                                        color: Colors.black45,
+                                        fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          )
+                        ],
                       ),
                       StreamBuilder<RegisterState>(
                         stream: registerBloc.state,

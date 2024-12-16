@@ -9,7 +9,6 @@ import 'home_event.dart';
 import 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  // List<Map<String, dynamic>> _cachedCafes = [];
 
   HomeBloc() : super(HomeLoading()) {
     on<FetchCafes>(_onFetchCafes);
@@ -20,6 +19,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FetchCafeDetail>(_onFetchCafeDetail);
     on<AddImagesToCafe>(_onAddImagesToCafe);
     on<DeleteCafe>(_onDeleteCafe);
+    on<LoggedOut>(_onLoggedOut);
+
   }
 
   Future<void> _onFetchCafes(FetchCafes event, Emitter<HomeState> emit) async {
@@ -30,6 +31,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       emit(HomeError("Error fetching cafes: ${e.toString()}"));
     }
+  }
+
+  Future<void> _onLoggedOut(LoggedOut event, Emitter<HomeState> emit) async {
+    emit(LoggedOutState());
   }
 
   void _onFilterCafes(FilterCafes event, Emitter<HomeState> emit) {
@@ -63,7 +68,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         imagePaths.add(localImage.path);
       }
       emit(ImagePicked(imagePaths));
-      // add(FetchCafes());
     } catch (e) {
       emit(HomeError('Failed to pick images: ${e.toString()}'));
     }
@@ -115,7 +119,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     try {
       final cafe = await DatabaseHelper.instance.queryCafeById(event.cafeId);
       emit(CafeDetailLoaded(cafe!) as HomeState);
-      // add(FetchCafeDetail(event.cafeId));
     } catch (e) {
       emit(CafeDetailError('Failed to load cafe details: ${e.toString()}') as HomeState);
     }

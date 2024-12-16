@@ -37,3 +37,4 @@ class ImagePicked extends HomeState {
   List<Object?> get props => [imagePaths];
 }
 
+class LoggedOutState extends HomeState {}
