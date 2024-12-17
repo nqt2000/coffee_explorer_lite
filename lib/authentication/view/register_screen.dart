@@ -1,7 +1,9 @@
 import 'package:coffee_explorer_lite/common/primary_button.dart';
+import 'package:coffee_explorer_lite/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import '../../utils/session_manager.dart';
 import '../bloc/register_bloc.dart';
 import '../bloc/register_event.dart';
 import '../bloc/register_state.dart';
@@ -284,7 +286,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               backgroundColor: Colors.grey,
                             ),
                           ),
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.02),
                           Expanded(
                             child: PrimaryButton(
                               onPressed: _isButtonEnabled
@@ -323,18 +326,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           } else if (snapshot.data is RegisterLoading) {
                             return CircularProgressIndicator();
                           } else if (snapshot.data is RegisterSuccess) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LoginScreen()));
+                            WidgetsBinding.instance
+                                .addPostFrameCallback((_) async {
+                              final sessionManager = SessionManager();
+                              Map<String, dynamic>? userInfo =
+                                  await sessionManager.getUserInfo();
+
+                              if (userInfo != null) {
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => HomeScreen(
+                                            userFullName:
+                                                userInfo['name'] ?? '',
+                                            isAdmin:
+                                                userInfo['isAdmin'] == 1)));
+                              }
                             });
                           } else if (snapshot.data is RegisterFailure) {
-                            // Show error message
                             return Text(
                                 (snapshot.data as RegisterFailure).error);
                           }
-                          return Container(); // Default fallback
+                          return Container();
                         },
                       ),
                     ],

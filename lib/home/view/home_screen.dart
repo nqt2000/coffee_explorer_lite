@@ -65,12 +65,55 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: Icon(Icons.logout),
                 onPressed: () {
-                  SessionManager().clearSession();
-
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                    // (route) => false,
+                  // Hiển thị AlertDialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("Confirm logut"),
+                        content: Text("Are you sure you want to log out?"),
+                        actions: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: PrimaryButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  title: Text(
+                                    "Cancel",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              ),
+                              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                              Expanded(
+                                child: PrimaryButton(
+                                  onPressed: () {
+                                    SessionManager().clearSession();
+                                    Navigator.of(context).pop();
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => LoginScreen()),
+                                    );
+                                  },
+                                  title: Text(
+                                    "Logout",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
@@ -160,7 +203,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 backgroundColor: Colors.red,
                                               ),
                                             ),
-                                            SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                                            SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.02),
                                             Expanded(
                                               child: PrimaryButton(
                                                 onPressed: () =>
@@ -313,16 +360,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   PrimaryButton(
-                      onPressed: () {
-                        context.read<HomeBloc>().add(PickImages());
-                      },
-                      title: Text(
-                        'Upload Images',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    onPressed: () {
+                      context.read<HomeBloc>().add(PickImages());
+                    },
+                    title: Text(
+                      'Upload Images',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
+                    ),
                     backgroundColor: Colors.blue,
                   ),
                   BlocBuilder<HomeBloc, HomeState>(

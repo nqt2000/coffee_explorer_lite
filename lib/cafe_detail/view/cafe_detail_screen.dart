@@ -33,47 +33,13 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     cafe = Map<String, dynamic>.from(widget.cafe);
   }
 
-  // Future<void> _pickImage(BuildContext context) async {
-  //   if (!isAdmin) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //           content: Text('You do not have permission to change the image.')),
-  //     );
-  //     return;
-  //   }
-  //
-  //   final ImagePicker picker = ImagePicker();
-  //   try {
-  //     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-  //
-  //     if (image != null) {
-  //       await DatabaseHelper.instance
-  //           .updateCafeImage(widget.cafe['id'], image.path);
-  //
-  //       final newCafe = Map.of(cafe);
-  //       newCafe['imagePath'] = image.path;
-  //
-  //       Navigator.pop(context, widget.cafe['imagePath']);
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('No image selected')),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     // print(e);
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Error selecting image: $e')),
-  //     );
-  //   }
-  // }
-
   Future<void> _pickImage(BuildContext context) async {
     if (!isAdmin) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You do not have permission to change the image.'),
-        ),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('You do not have permission to change the image.'),
+      //   ),
+      // );
       return;
     }
 
@@ -91,18 +57,18 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
           cafe = updatedCafe;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Image updated successfully')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Image updated successfully')),
+        // );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No image selected')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('No image selected')),
+        // );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting image: $e')),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Error selecting image: $e')),
+      // );
     }
   }
 
