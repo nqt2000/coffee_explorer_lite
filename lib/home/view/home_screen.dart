@@ -89,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   backgroundColor: Colors.red,
                                 ),
                               ),
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                              SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.02),
                               Expanded(
                                 child: PrimaryButton(
                                   onPressed: () {
@@ -372,20 +374,43 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     backgroundColor: Colors.blue,
                   ),
-                  BlocBuilder<HomeBloc, HomeState>(
-                    builder: (context, state) {
-                      if (state is ImagePicked) {
-                        return Wrap(
-                          spacing: 8.0,
-                          children: state.imagePaths.map((path) {
-                            return Image.file(File(path),
-                                width: 100, height: 100, fit: BoxFit.contain);
-                          }).toList(),
+                  // BlocBuilder<HomeBloc, HomeState>(
+                  //   builder: (context, state) {
+                  //     if (state is ImagePicked) {
+                  //       return Wrap(
+                  //         spacing: 8.0,
+                  //         children: state.imagePaths.map((path) {
+                  //           return Image.file(File(path),
+                  //               width: 100, height: 100, fit: BoxFit.contain);
+                  //         }).toList(),
+                  //       );
+                  //     }
+                  //     return Container();
+                  //   },
+                  // ),
+                  BlocListener<HomeBloc, HomeState>(
+                    listener: (context, state) {
+                      if (state is HomeError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(state.message)),
                         );
                       }
-                      return Container();
                     },
-                  ),
+                    child: BlocBuilder<HomeBloc, HomeState>(
+                      builder: (context, state) {
+                        if (state is ImagePicked) {
+                          return Wrap(
+                            spacing: 8.0,
+                            children: state.imagePaths.map((path) {
+                              return Image.file(File(path),
+                                  width: 100, height: 100, fit: BoxFit.contain);
+                            }).toList(),
+                          );
+                        }
+                        return Container();
+                      },
+                    ),
+                  )
                 ],
               ),
               actions: [

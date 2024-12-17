@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:coffee_explorer_lite/common/primary_button.dart';
-import 'package:coffee_explorer_lite/home/bloc/home_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -237,7 +236,6 @@ class _CafeDetailScreenState extends State<CafeDetailScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        // Use dialogContext for the dialog itself
         return AlertDialog(
           title: const Text('Edit Coffee Shop Details'),
           content: SingleChildScrollView(
@@ -459,11 +457,11 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                     height: index == _currentIndex ? 12.0 : 8.0,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: index == _currentIndex ? Colors.blue : Colors.grey,
+                      color: index == _currentIndex ? Colors.green : Colors.grey,
                       boxShadow: index == _currentIndex
                           ? [
                               BoxShadow(
-                                color: Colors.blue.withOpacity(0.6),
+                                color: Colors.green.withOpacity(0.6),
                                 spreadRadius: 2,
                                 blurRadius: 4,
                               ),
@@ -542,7 +540,12 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                   _isAddingComment = true;
                                 });
                               },
-                              title: Text('Add a comment'),
+                              title: Text(
+                                'Add a comment',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
                             ),
                           ),
                         ListView.builder(
@@ -943,8 +946,8 @@ class _AddCommentFormState extends State<AddCommentForm> {
                 },
                 title: Text(
                   'Submit',
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ),

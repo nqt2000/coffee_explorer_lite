@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_android/image_picker_android.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import '../../cafe_detail/bloc/cafe_detail_state.dart';
@@ -55,19 +57,44 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onPickImages(PickImages event, Emitter<HomeState> emit) async {
+    int maxImageCount = 5;
+
+    final ImagePickerPlatform imagePickerImplementation =
+        ImagePickerPlatform.instance;
+    if (imagePickerImplementation is ImagePickerAndroid) {
+      imagePickerImplementation.useAndroidPhotoPicker = true;
+    }
+
     try {
       final pickedFiles = await ImagePicker().pickMultiImage();
 
-      List<String> imagePaths = [];
+      if (pickedFiles.isEmpty) {
+        return;
+      }
+
+      final currentState = state;
+      List<String> existingImagePaths = [];
+      if (currentState is ImagePicked) {
+        existingImagePaths = currentState.imagePaths;
+      }
+
+      final totalImages = existingImagePaths.length + pickedFiles.length;
+      if (totalImages > maxImageCount) {
+        emit(HomeError('You can only select $maxImageCount images.'));
+        return;
+      }
+
+      List<String> newImagePaths = [];
       for (var pickedFile in pickedFiles) {
         final directory = await getApplicationDocumentsDirectory();
         final imageName = basename(pickedFile.path);
         final savedImagePath = '${directory.path}/$imageName';
-        final File localImage =
-        await File(pickedFile.path).copy(savedImagePath);
-        imagePaths.add(localImage.path);
+        final File localImage = await File(pickedFile.path).copy(savedImagePath);
+        newImagePaths.add(localImage.path);
       }
-      emit(ImagePicked(imagePaths));
+
+      final updatedImagePaths = [...existingImagePaths, ...newImagePaths];
+      emit(ImagePicked(updatedImagePaths));
     } catch (e) {
       emit(HomeError('Failed to pick images: ${e.toString()}'));
     }
