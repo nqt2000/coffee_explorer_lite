@@ -57,7 +57,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onPickImages(PickImages event, Emitter<HomeState> emit) async {
-    int maxImageCount = 5;
+    int maxImageCount = 6;
 
     final ImagePickerPlatform imagePickerImplementation =
         ImagePickerPlatform.instance;
@@ -66,7 +66,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     try {
-      final pickedFiles = await ImagePicker().pickMultiImage();
+      final pickedFiles = await ImagePicker().pickMultiImage(limit: 6);
 
       if (pickedFiles.isEmpty) {
         return;

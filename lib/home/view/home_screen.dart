@@ -361,39 +361,15 @@ class _HomeScreenState extends State<HomeScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  PrimaryButton(
-                    onPressed: () {
-                      context.read<HomeBloc>().add(PickImages());
-                    },
-                    title: Text(
-                      'Upload Images',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    backgroundColor: Colors.blue,
-                  ),
-                  // BlocBuilder<HomeBloc, HomeState>(
-                  //   builder: (context, state) {
-                  //     if (state is ImagePicked) {
-                  //       return Wrap(
-                  //         spacing: 8.0,
-                  //         children: state.imagePaths.map((path) {
-                  //           return Image.file(File(path),
-                  //               width: 100, height: 100, fit: BoxFit.contain);
-                  //         }).toList(),
-                  //       );
-                  //     }
-                  //     return Container();
-                  //   },
-                  // ),
+
                   BlocListener<HomeBloc, HomeState>(
                     listener: (context, state) {
                       if (state is HomeError) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(state.message)),
                         );
+                        context.read<HomeBloc>().add(FetchCafes());
+                        Navigator.of(dialogContext).pop();
                       }
                     },
                     child: BlocBuilder<HomeBloc, HomeState>(
@@ -410,7 +386,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Container();
                       },
                     ),
-                  )
+                  ),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                  PrimaryButton(
+                    onPressed: () {
+                      context.read<HomeBloc>().add(PickImages());
+                    },
+                    title: Text(
+                      'Upload Images',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    backgroundColor: Colors.blue,
+                  ),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                  // Text(
+                  //   '*** Can pick 6 images only! ***',
+                  //   style: TextStyle(
+                  //       fontWeight: FontWeight.bold,
+                  //       color: Colors.red,
+                  //       decoration: TextDecoration.underline,
+                  //       decorationColor: Colors.red),
+                  // ),
                 ],
               ),
               actions: [
@@ -488,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   constraints: BoxConstraints(
                     maxHeight: MediaQuery.of(context).size.height * 0.6,
                   ),
-                  child: Container(
+                  child: SizedBox(
                     width: MediaQuery.of(context).size.width * 1,
                     child: ListView(
                       children: [

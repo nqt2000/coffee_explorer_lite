@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:coffee_explorer_lite/common/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
@@ -348,6 +350,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
   int _currentIndex = 0;
   PageController? _pageController;
   List<String> imagePaths = [];
+  int activeIndex = 0;
 
   late int cafeId;
 
@@ -394,9 +397,13 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: SizedBox(
-                height: 350,
-                width: 350,
+              child: Container(
+                height: MediaQuery.of(context).size.width * 0.8,
+                width: MediaQuery.of(context).size.width * 0.8,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: imagePaths.isEmpty
                     ? Center(
                         child: Icon(Icons.image, size: 100, color: Colors.grey),
@@ -423,15 +430,31 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                               );
                             },
                             child: Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(0),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(30),
-                                child: Image.file(
-                                  File(imagePaths[index]),
-                                  fit: BoxFit.cover,
-                                  filterQuality: FilterQuality.high,
-                                  color: Colors.black.withOpacity(0.1),
-                                  colorBlendMode: BlendMode.lighten,
+                                borderRadius: BorderRadius.circular(20),
+                                child: CarouselSlider.builder(
+                                  itemCount: imagePaths.length,
+                                  itemBuilder: (context, index, realIndex) {
+                                    return Image.file(
+                                      File(imagePaths[index]),
+                                      fit: BoxFit.cover,
+                                      filterQuality: FilterQuality.high,
+                                      color: Colors.black.withOpacity(0.1),
+                                      colorBlendMode: BlendMode.lighten,
+                                    );
+                                  },
+                                  options: CarouselOptions(
+                                    height:
+                                        MediaQuery.of(context).size.height * 1,
+                                    // enlargeCenterPage: true,
+                                    autoPlay: true,
+                                    autoPlayInterval: Duration(seconds: 3),
+                                    viewportFraction: 1,
+                                    // aspectRatio: 1 / 1,
+                                    onPageChanged: (index, reason) =>
+                                        setState(() => activeIndex = index),
+                                  ),
                                 ),
                               ),
                             ),
@@ -440,38 +463,43 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                       ),
               ),
             ),
+            const SizedBox(
+              height: 30,
+            ),
+            Center(child: buildIndicator()),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.01,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(imagePaths.length, (index) {
-                return GestureDetector(
-                  onTap: () {
-                    _pageController?.jumpToPage(index);
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                    width: index == _currentIndex ? 12.0 : 8.0,
-                    height: index == _currentIndex ? 12.0 : 8.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: index == _currentIndex ? Colors.green : Colors.grey,
-                      boxShadow: index == _currentIndex
-                          ? [
-                              BoxShadow(
-                                color: Colors.green.withOpacity(0.6),
-                                spreadRadius: 2,
-                                blurRadius: 4,
-                              ),
-                            ]
-                          : [],
-                    ),
-                  ),
-                );
-              }),
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: List.generate(imagePaths.length, (index) {
+            //     return GestureDetector(
+            //       onTap: () {
+            //         _pageController?.jumpToPage(index);
+            //       },
+            //       child: AnimatedContainer(
+            //         duration: const Duration(milliseconds: 300),
+            //         margin: const EdgeInsets.symmetric(horizontal: 4.0),
+            //         width: index == _currentIndex ? 12.0 : 8.0,
+            //         height: index == _currentIndex ? 12.0 : 8.0,
+            //         decoration: BoxDecoration(
+            //           shape: BoxShape.circle,
+            //           color:
+            //               index == _currentIndex ? Colors.green : Colors.grey,
+            //           boxShadow: index == _currentIndex
+            //               ? [
+            //                   BoxShadow(
+            //                     color: Colors.green.withOpacity(0.6),
+            //                     spreadRadius: 2,
+            //                     blurRadius: 4,
+            //                   ),
+            //                 ]
+            //               : [],
+            //         ),
+            //       ),
+            //     );
+            //   }),
+            // ),
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.01,
             ),
@@ -685,7 +713,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                   icon: Icon(Icons.more_vert),
                                                   onSelected: (value) {
                                                     switch (value) {
-                                                      case 1: // Edit option
+                                                      case 1:
                                                         _showEditCommentDialog(
                                                           context,
                                                           idComment,
@@ -693,7 +721,7 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
                                                           widget.cafe['id'],
                                                         );
                                                         break;
-                                                      case 2: // Delete option
+                                                      case 2:
                                                         if (idComment != null) {
                                                           BlocProvider.of<
                                                                       CommentBloc>(
@@ -855,6 +883,17 @@ class _CafeDetailBodyState extends State<CafeDetailBody> {
       ),
     );
   }
+
+  Widget buildIndicator() => AnimatedSmoothIndicator(
+        activeIndex: activeIndex,
+        count: imagePaths.length,
+        effect: SlideEffect(
+          dotWidth: MediaQuery.of(context).size.height * 0.01,
+          dotHeight: MediaQuery.of(context).size.height * 0.01,
+          activeDotColor: Colors.green,
+          dotColor: Colors.grey,
+        ),
+      );
 }
 
 Future<ImageInfo> _getImageInfo(Image image) async {
