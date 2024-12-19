@@ -87,198 +87,204 @@ class _LoginScreenState extends State<LoginScreen> {
             automaticallyImplyLeading: false,
             centerTitle: true,
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: Image.asset(
-                        'assets/images/coffee-shop.jpg',
-                        height: MediaQuery.of(context).size.height * 0.3,
-                        width: MediaQuery.of(context).size.height * 1,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
-                    ),
-                    Divider(),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            left: MediaQuery.of(context).size.width * 0.02),
-                        child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold),),
-                      ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      width: MediaQuery.of(context).size.width,
-                      child: TextFormField(
-                        controller: emailController,
-                        decoration: InputDecoration(
-                          hintText: 'example@mail.com',
-                          hintStyle:
-                              TextStyle(color: Colors.grey, fontSize: 14),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
+          body: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).requestFocus(FocusNode());
+            },
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Image.asset(
+                          'assets/images/coffee-shop.jpg',
+                          height: MediaQuery.of(context).size.height * 0.3,
+                          width: MediaQuery.of(context).size.height * 1,
+                          fit: BoxFit.cover,
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please input email';
-                          }
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                              .hasMatch(value.toLowerCase())) {
-                            return 'Email invalid';
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            left: MediaQuery.of(context).size.width * 0.02),
-                        child: Text('Password', style: TextStyle(fontWeight: FontWeight.bold),),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
                       ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      width: MediaQuery.of(context).size.width,
-                      child: TextFormField(
-                        controller: passwordController,
-                        decoration: InputDecoration(
-                          hintText: 'Password',
-                          hintStyle:
-                              TextStyle(color: Colors.grey, fontSize: 14),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              size: 20,
-                              _passwordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey,
+                      Divider(),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.02),
+                          child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold),),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width,
+                        child: TextFormField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            hintText: 'example@mail.com',
+                            hintStyle:
+                                TextStyle(color: Colors.grey, fontSize: 14),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                          ),
+                          validator: (value) {
+                            const pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,5}$';
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please input email';
+                            }
+                            if (!RegExp(pattern)
+                                .hasMatch(value.trim().toLowerCase())) {
+                              return 'Email invalid';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.02),
+                          child: Text('Password', style: TextStyle(fontWeight: FontWeight.bold),),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        width: MediaQuery.of(context).size.width,
+                        child: TextFormField(
+                          controller: passwordController,
+                          decoration: InputDecoration(
+                            hintText: 'Password',
+                            hintStyle:
+                                TextStyle(color: Colors.grey, fontSize: 14),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                size: 20,
+                                _passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _passwordVisible = !_passwordVisible;
+                                });
+                              },
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
+                          ),
+                          obscureText: !_passwordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please input password';
+                            }
+                            if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                              return 'Password must contain at least one uppercase character';
+                            }
+                            if (value.length < 8) {
+                              return 'Password must contain at least 8 character';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                      PrimaryButton(
+                        title: Text(
+                          'LOGIN',
+                          style: _isButtonEnabled
+                              ? TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)
+                              : TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black45),
+                        ),
+                        onPressed: _isButtonEnabled
+                            ? () {
+                                if (_formKey.currentState!.validate()) {
+                                  loginBloc.event.add(LoginButtonPressed(
+                                    emailController.text.toLowerCase(),
+                                    passwordController.text,
+                                  ));
+                                }
+                              }
+                            : null,
+                      ),
+
+                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Text(
+                          "Don't have account?",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
                           ),
                         ),
-                        obscureText: !_passwordVisible,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please input password';
-                          }
-                          if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                            return 'Password must contain at least one uppercase character';
-                          }
-                          if (value.length < 8) {
-                            return 'Password must contain at least 8 character';
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                      ),
-                    ),
-                    PrimaryButton(
-                      title: Text(
-                        'LOGIN',
-                        style: _isButtonEnabled
-                            ? TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)
-                            : TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black45),
-                      ),
-                      onPressed: _isButtonEnabled
-                          ? () {
-                              if (_formKey.currentState!.validate()) {
-                                loginBloc.event.add(LoginButtonPressed(
-                                  emailController.text.toLowerCase(),
-                                  passwordController.text,
-                                ));
-                              }
-                            }
-                          : null,
-                    ),
-
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text(
-                        "Don't have account?",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child: Text('Register', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),),
-                      ),
-                    ]),
-                    StreamBuilder<LoginState>(
-                      stream: loginBloc.state,
-                      builder: (context, snapshot) {
-                        if (snapshot.data is LoginLoading) {
-                          return CircularProgressIndicator();
-                        } else if (snapshot.data is LoginSuccess) {
-                          WidgetsBinding.instance
-                              .addPostFrameCallback((_) async {
-                            final sessionManager = SessionManager();
-                            String? email =
-                                (snapshot.data as LoginSuccess).email;
-
-                            await sessionManager.saveUserSession(email);
-
-                            Map<String, dynamic>? userInfo =
-                                await sessionManager.getUserInfo();
-
-                            if (userInfo != null) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => HomeScreen(
-                                    userFullName: userInfo['name'] ?? '',
-                                    isAdmin: userInfo['isAdmin'] == 1,
-                                  ),
-                                ),
-                              );
-                            }
-                          });
-                        } else if (snapshot.data is LoginFailure) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text((snapshot.data as LoginFailure).error),
-                                backgroundColor: Colors.red,
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RegisterScreen(),
                               ),
                             );
-                          });
-                        }
-                        return Container();
-                      },
-                    )
-                  ],
+                          },
+                          child: Text('Register', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),),
+                        ),
+                      ]),
+                      StreamBuilder<LoginState>(
+                        stream: loginBloc.state,
+                        builder: (context, snapshot) {
+                          if (snapshot.data is LoginLoading) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.data is LoginSuccess) {
+                            WidgetsBinding.instance
+                                .addPostFrameCallback((_) async {
+                              final sessionManager = SessionManager();
+                              String? email =
+                                  (snapshot.data as LoginSuccess).email;
+
+                              await sessionManager.saveUserSession(email);
+
+                              Map<String, dynamic>? userInfo =
+                                  await sessionManager.getUserInfo();
+
+                              if (userInfo != null) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomeScreen(
+                                      userFullName: userInfo['name'] ?? '',
+                                      isAdmin: userInfo['isAdmin'] == 1,
+                                    ),
+                                  ),
+                                );
+                              }
+                            });
+                          } else if (snapshot.data is LoginFailure) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text((snapshot.data as LoginFailure).error),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            });
+                          }
+                          return Container();
+                        },
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
